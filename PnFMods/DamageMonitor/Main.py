@@ -144,12 +144,12 @@ class DamageMonitor(object):
 
     def onDamagesUpdated(self, victimId, damages):
         """
-        Updates internal dict of damage
+        Update internal dicts
         
         :param victimId: Entity ID of victim vehicle
         :type  victimId: int
         :param damages: Damages
-        :type  damages: List[ Dict[vehicleID, damage], ]
+        :type  damages: List[ Dict[vehicleID, damage] ]
         """
         # Using avatarId because attacker vehicles can be undetected
         # and vehicle component can be None (so unbound dh cannot find corresponding player)
@@ -172,50 +172,12 @@ class DamageMonitor(object):
 
             attackers.add(attackerId)
 
-            #
             # Team Total Damage
-            #
             self.__updateTeamDamage(attacker.teamId, damage)
-            
-            # attackerTeam = attacker.teamId
-            # if attackerTeam not in self._teamTotalDamage:
-            #     self._teamTotalDamage[attackerTeam] = 0
-            # self._teamTotalDamage[attackerTeam] += damage
 
-            #
             # Personal Damages
-            #
             self.__updateInflictedDamage(attackerId, victimId, damage)
             self.__updateReceivedDamage(attackerId, victimId, damage)
-
-            # if attackerId not in self._inflictedDamage:
-            #     playerDamage = dict(totalDamage=0, victimIds=[])
-            # else:
-            #     playerDamage = dict(self._inflictedDamage[attackerId])
-            # # Total Damage vs All Enemies
-            # playerDamage['totalDamage'] += damage
-            # # Total Damage vs Specific Enemy
-            # if victimId not in playerDamage:
-            #     playerDamage[victimId] = 0
-            # playerDamage[victimId] += damage
-            # # Vehicle IDs: Array of avatar IDs to iterate "Total Damage vs Specific Enemy" in Unbound
-            # # Convertion of set() to AS3 object is not supported
-            # # Maybe just replace this with .keys()
-            # playerDamage['victimIds'].append(victimId) if victimId not in playerDamage['victimIds'] else None
-
-            # self._inflictedDamage[attackerId] = playerDamage
-            # # Create new instance so C++ DataHub detects the changes
-
-            # if victimId not in self._receivedDamage:
-            #     receivedDamage = dict(totalDamage=0, attackerIds=[])
-            # else:
-            #     receivedDamage = dict(self._receivedDamage[victimId])
-            # receivedDamage['totalDamage'] += damage
-            # if attackerId not in receivedDamage:
-            #     receivedDamage[attackerId] = 0
-            # receivedDamage[attackerId] += damage
-            # receivedDamage['attackerIds'].append(attackerId) if attackerId not in receivedDamage['attackerIds'] else None
-            # self._receivedDamage[victimId] = receivedDamage
 
         # Sorting avatarId by damage
         # Higher damage means smaller index
@@ -239,6 +201,9 @@ class DamageMonitor(object):
         self._updateEntities()
 
     def _clearDamages(self):
+        """
+        Clear internal dicts
+        """
         self._inflictedDamage.clear()
         self._receivedDamage.clear()
         self._teamTotalDamage.clear()
