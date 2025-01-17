@@ -100,6 +100,8 @@
 	(scope
 		(macro STAGE_SIZE)
 
+        (macro TT_GET_USERPREF)
+
         (macro IS_SPECTATOR_MODE)
 
         # Target Entity
@@ -107,7 +109,13 @@
 		(var targetEntity:gfx = "targetEntityWatcher.entity" (event "targetEntityWatcher.event"))
 		(var targetDataComponent:gfx = "targetEntity ? targetEntity.mods_DataComponent : null")
 		(var targetData:dict = "targetDataComponent ? targetDataComponent.data : {}" (event "targetDataComponent.evDataChanged"))
-		(var targetAvatarId:str = "'avatarId' in targetData ? toString(targetData.avatarId) : ''")
+		(var targetId:str = "'avatarId' in targetData ? toString(targetData.avatarId) : ''")
+
+        (var playerAvatar:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
+        (var ownId:str = "playerAvatar ? playerAvatar.avatar.id : ''")
+        
+        (macro TT_GET_PREF_BOOL _varName="'isOnlyOwnDamageVisible'" _pref="DMonitor_PREFS.HIDE_OTHERS")
+        (var targetAvatarId:str = "isOnlyOwnDamageVisible && !isSpectatorTrainingMode ? ownId : targetId")
 	)
 
     (style
@@ -116,16 +124,12 @@
 		#(hitTest = false)
 	)
 
-    #(bind visible "isSpectatorTrainingMode")
-
-    (element DMonitor_DetailedDamageElement _targetAvatarId="targetAvatarId")
+    (element DMonitor_DetailedDamageElement _targetAvatarId="targetAvatarId" _userPrefsNum="_userPrefsNum")
 )
 
-(def element DMonitor_DetailedDamageElement(_targetAvatarId:str)
+(def element DMonitor_DetailedDamageElement(_targetAvatarId:str, _userPrefsNum:gfx=null)
     (scope
         (macro STAGE_SIZE)
-
-        (macro TT_GET_USERPREF)
 
         (macro TT_GET_PREF_NUMBER _varName="'scale'" _pref="DMonitor_PREFS.UI_SCALE")
         (macro TT_GET_PREF_NUMBER _varName="'backgroundAlpha'" _pref="DMonitor_PREFS.BACKGROUND_ALPHA")
@@ -605,15 +609,21 @@
 	(extends $FontEnableReadability)
 )
 
+(def css $DMonitor_DefaultBoldText()
+	(extends $TextDefaultBold)
+	(extends $FontEnableReadability)
+)
+
 (def css $DMonitor_HeaderText()
 	(extends $TextDefaultBold17NM)
 	(extends $FontEnableReadability)
 )
 
-(def element DMonitor_TextItem(_text:str, _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
+(def element DMonitor_TextItem(_text:str, _isBold:bool=false _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
 	(scope
         (macro TT_GET_PREF_NUMBER _varName="'fontStyleIndexPref'" _pref="DMonitor_PREFS.FONT_STYLE_INDEX")
         (macro DMonitor_GET_FONT_COLOR _varName="'fontColor'" _prefValue="fontStyleIndexPref")
+        (var fontClass:str = "_isBold ? '$DMonitor_DefaultBoldText' : '$DMonitor_DefaultText' ")
 	)
 
 	(style
@@ -621,7 +631,7 @@
 	)
 
 	(tf
-		(class $DMonitor_DefaultText)
+		(bind class "fontClass")
 		(style
 			(bind width "_width")
 			(bind textAlign "_textAlign")
