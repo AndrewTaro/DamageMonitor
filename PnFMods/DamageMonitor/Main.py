@@ -142,6 +142,13 @@ class DamageMonitor(object):
             self._teamTotalDamage[attackerTeamId] = 0
         self._teamTotalDamage[attackerTeamId] += damage
 
+    def __updateDamageScaleBase(self):
+        maxTotalInflictedDamage = max(self._inflictedDamage.itervalues(), key=sortKey)['totalDamage'] if len(self._inflictedDamage) > 0 else 0
+        maxTotalReceivedDamage = max(self._receivedDamage.itervalues(),   key=sortKey)['totalDamage'] if len(self._receivedDamage)  > 0 else 0
+        maxDamage = max(maxTotalInflictedDamage, maxTotalReceivedDamage)
+        # x1.12: Slight offset because the damage bar shouldnt be "100%"
+        self._teamTotalDamage['personalDamageScaleBase'] = ((maxDamage * 1.12 // SCALE_BASE_DAMAGE_STEP) + 1) * SCALE_BASE_DAMAGE_STEP
+
     def onDamagesUpdated(self, victimId, damages):
         """
         Update internal dicts
@@ -154,8 +161,12 @@ class DamageMonitor(object):
         # Using avatarId because attacker vehicles can be undetected
         # and vehicle component can be None (so unbound dh cannot find corresponding player)
         attackers = set()
-        # There should Never be a vehicle without avatar right?
-        victimId = battle.getPlayerByVehicleId(victimId).id
+        victim = battle.getPlayerByVehicleId(victimId)
+        if victim is None:
+            # There should Never be a vehicle without avatar right? but just in case
+            logError('Victim player does not exist. vehId: {}'.format(victimId))
+            return
+        victimId = victim.id
 
         for damageData in damages:
             damage = round(damageData['damage'])
@@ -191,11 +202,7 @@ class DamageMonitor(object):
             receivedDamage['attackerIds'].sort(key = lambda x: receivedDamage[x], reverse=True)
 
         # For total damage bar scaling
-        maxTotalInflictedDamage = max(self._inflictedDamage.itervalues(), key=sortKey)['totalDamage'] if len(self._inflictedDamage) > 0 else 0
-        maxTotalReceivedDamage = max(self._receivedDamage.itervalues(),   key=sortKey)['totalDamage'] if len(self._receivedDamage)  > 0 else 0
-        maxDamage = max(maxTotalInflictedDamage, maxTotalReceivedDamage)
-        # x1.12: Slight offset because the damage bar shouldnt be "100%"
-        self._teamTotalDamage['personalDamageScaleBase'] = ((maxDamage * 1.12 // SCALE_BASE_DAMAGE_STEP) + 1) * SCALE_BASE_DAMAGE_STEP
+        self.__updateDamageScaleBase()
 
         # Update DH
         self._updateEntities()
