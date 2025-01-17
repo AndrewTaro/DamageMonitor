@@ -1,0 +1,582 @@
+(def constant DMonitor_INFLICTED_DAMAGE_COMPONENT_KEY 'modDamageMonitorInflictedKey')
+(def constant DMonitor_RECEIVD_DAMAGE_COMPONENT_KEY 'modDamageMonitorReceivedKey')
+(def constant DMonitor_TARGET_COMPONENT_KEY 'modDamageMonitorTargetKey')
+(def constant DMonitor_TEAM_TOTAL_DAMAGE_COMPONENT_KEY 'modDamageMonitorTeamTotalDamageKey')
+
+(def constant DMonitor_PLAYER_INFO_WIDTH 120px)
+(def constant DMonitor_SHIP_NAME_WIDTH 90px)
+(def constant DMonitor_DAMAGE_WIDTH 50px)
+
+(def constant TT_DAMAGEMONITOR_INSTALLED true)
+
+(def element DMonitor_DamageMonitor() layout=true
+	(scope
+		(macro STAGE_SIZE)
+
+        (macro IS_SPECTATOR_MODE)
+
+        # Target Entity
+        (var targetEntityWatcher:gfx = "$datahub.getPrimWatcher(CC.mods_DataComponent, DMonitor_TARGET_COMPONENT_KEY)")
+		(var targetEntity:gfx = "targetEntityWatcher.entity" (event "targetEntityWatcher.event"))
+		(var targetDataComponent:gfx = "targetEntity ? targetEntity.mods_DataComponent : null")
+		(var targetData:dict = "targetDataComponent ? targetDataComponent.data : {}" (event "targetDataComponent.evDataChanged"))
+		(var targetAvatarId:str = "'avatarId' in targetData ? toString(targetData.avatarId) : ''")
+	)
+
+    (style
+		(bind width "stageWidth")
+		(bind height "stageHeight")
+		#(hitTest = false)
+	)
+
+    #(bind visible "isSpectatorTrainingMode")
+
+    (element DMonitor_DetailedDamageElement _targetAvatarId="targetAvatarId")
+)
+
+(def element DMonitor_DetailedDamageElement(_targetAvatarId:str)
+    (scope
+        (macro STAGE_SIZE)
+
+        (macro TT_GET_USERPREF)
+
+        (macro TT_GET_PREF_NUMBER _varName="'scale'" _pref="DMonitor_PREFS.UI_SCALE")
+        (macro TT_GET_PREF_NUMBER _varName="'backgroundAlpha'" _pref="DMonitor_PREFS.BACKGROUND_ALPHA")
+        (macro TT_GET_PREF_BOOL _varName="'isPositionLocked'" _pref="DMonitor_PREFS.DISABLE_DRAGDROP")
+
+        # Expand
+        (event evExpandButtonClicked)
+        (macro TT_GET_PREF_BOOL _varName="'isPanelVisible'" _pref="DMonitor_PREFS.DAMAGE_PANEL_VISIBLE")
+        (bindcall externalCall 'inputMapping.onAction' "['setUserPref', {'value': toNumber(!isPanelVisible) + 0.00001, 'name': 'chatBoxWidth', 'subName': DMonitor_PREFS.DAMAGE_PANEL_VISIBLE.key}]" init=false watch=false (event "evExpandButtonClicked"))
+
+        # D&D
+        (var elementName:str = "'damageMonitor'")
+		(var defaultPos:dict = "{positionX: (stageWidth / 2), positionY: (stageHeight - 200)}")
+		(macro DRAGGABLE_GET_DROP_POSITION _wndName="elementName" _defaults="defaultPos")
+    )
+    (style
+        (position = "absolute")
+        (bind left "dragPosX")
+        (bind top "dragPosY")
+        (bind scaleX "scale")
+        (bind scaleY "scale")
+        (align = "middle|center")
+    )
+
+    # Expand button
+    (element DMonitor_ButtonExpand
+        _expanded="isPanelVisible"
+
+        (style
+            (left = "-25px")
+            (top = 30px)
+            (position = "absolute")
+            (hitTest = true)
+        )
+    )
+
+    (controller $Instance renderer='ModDraggableElement'
+        (bind enabled "!isPositionLocked")
+        (args
+            _wndName="elementName"
+            _defaults="defaultPos"
+        )
+    )
+
+    (element TT_ConfigButtonElement _modIndex = "13"
+        (style
+            (left = -30px)
+        )
+    )
+
+    (mc contrast_panel
+        (class $FullsizeAbsolute)
+        (style
+            (bind alpha "backgroundAlpha")
+            (hitTest = false)
+        )
+    )
+
+    (element DMonitor_DamagePanelElement
+        _targetAvatarId="_targetAvatarId"
+        _userPrefsNum="_userPrefsNum"
+
+        (bind visible "isPanelVisible")
+    )
+)
+
+(def element DMonitor_DamagePanelElement(_targetAvatarId:str, _userPrefsNum:gfx=null)
+    (scope
+        (macro TT_GET_PREF_BOOL _varName="'isClanTagVisible'" _pref="DMonitor_PREFS.PLAYER_INFO.CLAN_NAME")
+
+        # Avatar
+        (var avatarEntity:gfx = "$datahub.getPrimaryEntity(CC.avatar, _targetAvatarId)")
+        (var avatarComponent:gfx = "avatarEntity ? avatarEntity.avatar : null")
+        (var playerName:str = "avatarComponent ? (isClanTagVisible ? avatarComponent.name : avatarComponent.pureName) : ''")
+        (var ship:gfx = "avatarComponent ? avatarComponent.ship.ref.ship : null")
+        (var shipName:str = "avatarComponent ? tr(ship.nameIDS) : ''")
+		(var shipType:str = "avatarComponent ? ship.subtype : ''")
+        (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png'")
+    )
+
+    (style
+        (align = "middle|center")
+    )
+
+    (hblock
+        (style
+            (align = "middle|center")
+            (marginTop = 6px)
+            (marginBottom = 6px)
+            (hitTest = false)
+        )
+
+        (element DMonitor_HeaderTextItem _text="playerName")
+
+        (block
+            (style
+                (width = "SHIP_ICON_SIZE.WIDTH")
+                (height = "SHIP_ICON_SIZE.HEIGHT")
+            )
+            (block
+                (style
+                    (bind backgroundImage "shipIcon")
+                )
+            )
+        )
+
+        (element DMonitor_HeaderTextItem _text="shipName")
+    )
+
+
+    (element DMonitor_DamageTableElement
+        _targetAvatarId="_targetAvatarId"
+        _userPrefsNum="_userPrefsNum"
+    )
+)
+
+(def element DMonitor_DamageTableElement(_targetAvatarId:str, _userPrefsNum:gfx=null)
+    (scope
+        # Received Damage Data Entity
+		(var rDamageEntityWatcher:gfx = "$datahub.getPrimWatcher(CC.mods_DataComponent, DMonitor_RECEIVD_DAMAGE_COMPONENT_KEY)")
+		(var rDamageEntity:gfx = "rDamageEntityWatcher.entity" (event "rDamageEntityWatcher.event"))
+
+		(var rDamageDataComponent:gfx = "rDamageEntity ? rDamageEntity.mods_DataComponent : null")
+		(var receivedDamageData:dict = "rDamageDataComponent ? rDamageDataComponent.data : {}" (event "rDamageDataComponent.evDataChanged"))
+        (var receivedDamage:dict = "_targetAvatarId in receivedDamageData ? receivedDamageData[_targetAvatarId] : {}")
+
+        # Inflicted Damage Data Entity
+        (var iDamageEntityWatcher:gfx = "$datahub.getPrimWatcher(CC.mods_DataComponent, DMonitor_INFLICTED_DAMAGE_COMPONENT_KEY)")
+		(var iDamageEntity:gfx = "iDamageEntityWatcher.entity" (event "iDamageEntityWatcher.event"))
+
+		(var iDamageDataComponent:gfx = "iDamageEntity ? iDamageEntity.mods_DataComponent : null")
+		(var inflictedDamageData:dict = "iDamageDataComponent ? iDamageDataComponent.data : {}" (event "iDamageDataComponent.evDataChanged"))
+        (var inflictedDamage:dict = "_targetAvatarId in inflictedDamageData ? inflictedDamageData[_targetAvatarId] : {}")
+
+        # Team Total Damage
+        (var tDamageEntityWatcher:gfx = "$datahub.getPrimWatcher(CC.mods_DataComponent, DMonitor_TEAM_TOTAL_DAMAGE_COMPONENT_KEY)")
+		(var tDamageEntity:gfx = "tDamageEntityWatcher.entity" (event "tDamageEntityWatcher.event"))
+
+		(var tDamageDataComponent:gfx = "tDamageEntity ? tDamageEntity.mods_DataComponent : null")
+		(var teamDamageData:dict = "tDamageDataComponent ? tDamageDataComponent.data : {}" (event "tDamageDataComponent.evDataChanged"))
+
+        # Prefs
+        (macro TT_GET_PREF_BOOL _varName="'isReceivedDamageVisible'" _pref="DMonitor_PREFS.RECEIVED_DAMAGE_VISIBLE")
+        (macro TT_GET_PREF_BOOL _varName="'isInflictedDamageVisible'" _pref="DMonitor_PREFS.INFLICTED_DAMAGE_VISIBLE")
+    )
+
+    (style
+        (hitTest = false)
+    )
+
+    (block
+        (style
+            (flow = "Flow.HORIZONTAL")
+            (align = "middle|center")
+            (paddingLeft = 10px)
+            (paddingRight = 10px)
+            (paddingBottom = 10px)
+        )
+        (block
+            # Enclose Instance controller to keep the elements in order after disable/enabled
+            (controller $Instance renderer='DMonitor_DamageListElement'
+                (bind enabled "isReceivedDamageVisible")
+                (args
+                    _targetAvatarId="_targetAvatarId"
+                    _damageData="receivedDamage"
+                    _teamDamageData="teamDamageData"
+                    _isInflictedDamage = "false"
+                    _userPrefsNum="_userPrefsNum"
+                )
+            )
+        )
+        (element VerticalDivider
+            (bind visible "isReceivedDamageVisible && isInflictedDamageVisible")
+        )
+        (block
+            (controller $Instance renderer='DMonitor_DamageListElement'
+                (bind enabled "isInflictedDamageVisible")
+                (args
+                    _targetAvatarId="_targetAvatarId"
+                    _damageData="inflictedDamage"
+                    _teamDamageData="teamDamageData"
+                    _isInflictedDamage = "true"
+                    _userPrefsNum="_userPrefsNum"
+                )
+            )
+        )
+    )
+)
+
+(def element DMonitor_DamageListElement(_targetAvatarId:str, _damageData:dict, _teamDamageData:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
+    (scope
+        (macro TT_GET_PREF_NUMBER _varName="'rowCounts'" _pref="DMonitor_PREFS.ROW_COUNTS")
+
+        (var collection:gfx = "$datahub.getCollection(CC.avatar)")
+		(var allyCollection:gfx = "collection.getChildByPath('team.ally.sortedLeftTeam')")
+        (var numAllies:number = "allyCollection.items.length" (event "allyCollection.evAdded"))
+
+        (var idsKey:str = "_isInflictedDamage ? 'victimIds' : 'attackerIds'")
+        (var playerIds:array = "idsKey in _damageData ? _damageData[idsKey] : []")
+        (var idsLength:number = "playerIds.length")
+
+        (var titleLabel:str = "_isInflictedDamage ? 'IDS_BATTLE_STATS_CAUSED_DAMAGE' : 'IDS_TAKEN_DAMAGE_HINT'")
+
+        # Avatar 
+        (var avatarEntity:gfx = "$datahub.getPrimaryEntity(CC.avatar, _targetAvatarId)")
+
+        # Relation
+        (var relationComponent:gfx = "avatarEntity && avatarEntity.hasComponent(CC.relation) ? avatarEntity.relation : null" (event "avatarEntity.evAdded"))
+        (var relationValue:number = "relationComponent ? relationComponent.value : 0" (event "relationComponent.evChanged"))
+		(var isAlly:bool = "relationComponent && isIn(relationValue, [SC.Battle.PLAYER_RELATION.ALLY, SC.Battle.PLAYER_RELATION.SELF])" (event "relationComponent.evChanged"))
+        
+        # CT
+        (var relationName:str = "isAlly ? _isInflictedDamage ? 'ally'
+                                                             : 'enemy'
+                                        : _isInflictedDamage ? 'enemy'
+                                                             : 'ally'"
+        )
+
+        (var markerColorTransform:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
+    )
+
+    (style
+        (align = "middle|center")
+    )
+
+    (element DMonitor_DamageHeaderElement
+        _damageData="_damageData"
+        _teamDamageData="_teamDamageData"
+        _colorTransform="markerColorTransform"
+        _isInflictedDamage="_isInflictedDamage"
+        _userPrefsNum="_userPrefsNum"
+    )
+
+    (element HorizontalDividerTwoPx)
+
+    (block
+        (controller $Repeat
+            (renderer = 'DMonitor_DamageRowElement')
+            (bind count "rowCounts")
+            (args
+                _playerId = "$index < idsLength ? playerIds[$index] : ''"
+                _damageData = "_damageData"
+                _teamDamageData = "_teamDamageData"
+                _colorTransform = "markerColorTransform"
+                _isInflictedDamage = "_isInflictedDamage"
+                _userPrefsNum = "_userPrefsNum"
+            )
+        )
+    )
+)
+
+(def element DMonitor_DamageHeaderElement(_damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
+    (scope
+        (event evShow)
+
+        (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'" _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
+        (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'" _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
+        (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
+
+        (var titleLabel:str = "_isInflictedDamage ? 'IDS_BATTLE_STATS_CAUSED_DAMAGE' : 'IDS_TAKEN_DAMAGE_HINT'")
+
+        (var totalDamage:number = "'totalDamage' in _damageData ? _damageData.totalDamage : 0")
+        (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
+        (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")
+        (var barScale:number = "scaleDirection * totalDamage / scaleBase")
+
+        (var flowDirection:number = "_isInflictedDamage ? Flow.REVERSE_HORIZONTAL : Flow.HORIZONTAL")
+
+        (var animatedDamage:number = "0" watch=false)
+        (controller $Animation
+            # Increasing damage
+			(bindcall play	duration = 0.6
+							to = "{ animatedDamage: totalDamage}"
+							easing="Easing.cubic_out"
+                            watch=false
+							(bind trigger "totalDamage")
+                            (bind enabled "totalDamage > animatedDamage")
+							(event "evShow")
+			)
+            # Decreasing: changed target
+            (bindcall play	duration = 0.01
+							to = "{ animatedDamage: totalDamage}"
+							easing="Easing.line"
+                            watch=false
+                            action="killAll"
+							(bind trigger "totalDamage")
+                            (bind enabled "totalDamage < animatedDamage")
+							(event "evShow")
+                            
+			)
+		)
+    )
+
+    (dispatch evShow on='addedToStage')
+
+    (style
+        (align = "middle|center")
+        (bind width "DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier + DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier + DMonitor_DAMAGE_WIDTH + SHIP_ICON_SIZE.WIDTH")
+    )
+
+    (block
+        (class $FullsizeAbsolute)
+        (style
+            (bind backgroundColor "0xFFFFFFFF")
+            (backgroundSize = "fill")
+            (bind scaleX "barScale")
+            (bind left "_isInflictedDamage ? 0% : 100%")
+            (bind alpha "barAlpha")
+        )
+
+        (bind colorTransform "_colorTransform")
+    )
+
+    (element DMonitor_HeaderTextItem _text="tr(titleLabel)"
+        (style
+            (marginTop = 5px)
+        )
+    )
+
+    (element DMonitor_HeaderTextItem _text="ceil(animatedDamage)"
+        (style
+            (marginBottom = 5px)
+        )
+    )
+
+)
+
+(def element DMonitor_DamageRowElement(_playerId:str, _damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
+    (scope
+        #
+        (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
+        (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
+        (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
+        (macro TT_GET_PREF_BOOL   _varName="'isClanTagVisible'"         _pref="DMonitor_PREFS.PLAYER_INFO.CLAN_NAME")
+
+        (var playerInfoWidth:number = "DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier")
+        (var shipInfoWidth:number = "DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier")
+
+        (var isDataAvailable:bool = "_playerId != ''")
+
+        # Avatar
+        (var avatarEntity:gfx = "$datahub.getPrimaryEntity(CC.avatar, _playerId)")
+        (var avatarComponent:gfx = "avatarEntity ? avatarEntity.avatar : null")
+        (var playerName:str = "avatarComponent ? (isClanTagVisible ? avatarComponent.name : avatarComponent.pureName) : ''")
+        (var ship:gfx = "avatarComponent ? avatarComponent.ship.ref.ship : null")
+        (var shipName:str = "avatarComponent ? tr(ship.nameIDS) : ''")
+		(var shipType:str = "avatarComponent ? ship.subtype : ''")
+
+        (var damage:number = "_playerId in _damageData ? _damageData[_playerId] : 0")
+
+        # Style
+        (var nameAlign:number = "_isInflictedDamage ? right : left")
+        (var elementAlign:number = "_isInflictedDamage ? middle|left : middle|right")
+        (var flowDirection:number = "_isInflictedDamage ? Flow.REVERSE_HORIZONTAL : Flow.HORIZONTAL")
+        (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")
+
+        (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
+        (var barScale:number = "scaleDirection * damage / scaleBase")
+
+        (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png'")
+    )
+
+    (block
+        
+        (style
+            (bind flow "flowDirection")
+            (height = 20px)
+            (align = "middle|center")
+            (bind alpha "isDataAvailable")
+        )
+
+        # HP Bar
+        (block
+            (class $FullsizeAbsolute)
+            (style
+                (bind backgroundColor "0xFFFFFFFF")
+                (backgroundSize = "fill")
+                (bind scaleX "barScale")
+                (bind left "_isInflictedDamage ? 0% : 100%")
+                (bind alpha "barAlpha")
+            )
+
+            (bind colorTransform "_colorTransform")
+        )
+
+        # Player Name
+        (element DMonitor_TextItem _text="playerName" _width="playerInfoWidth" _textAlign="nameAlign")
+
+        # Ship Icon
+        (block
+            (style
+                (width = "SHIP_ICON_SIZE.WIDTH")
+                (height = "SHIP_ICON_SIZE.HEIGHT")
+                (pivotX = 50%)
+                (bind scaleX "scaleDirection")
+            )
+            (block
+                (style
+                    (bind backgroundImage "shipIcon")
+                )
+            )
+        )
+
+        # Ship Name
+        (element DMonitor_TextItem _text="shipName" _width="shipInfoWidth"  _textAlign="nameAlign")
+
+        # Damage
+        (element DMonitor_TextItem _text="damage" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center")
+    )
+    (element HorizontalDividerTwoPx)
+)
+
+(def css $DMonitor_DefaultText()
+	(extends $TextDefaultNM)
+	(extends $FontEnableReadability)
+	(filters 
+		(dropShadow 
+			(distance = 1)
+			(angle = 90)
+			(color = 0x08222a)
+			(alpha = 0.5)
+			(blurX = 2.0)
+			(blurY = 2.0)
+			(strength = 1.0)
+			(quality = 2)
+		)
+	)
+)
+
+(def css $DMonitor_HeaderText()
+	(extends $TextDefaultBold17NM)
+	(extends $FontEnableReadability)
+	(filters 
+		(dropShadow 
+			(distance = 1)
+			(angle = 90)
+			(color = 0x08222a)
+			(alpha = 0.5)
+			(blurX = 2.0)
+			(blurY = 2.0)
+			(strength = 1.0)
+			(quality = 2)
+		)
+	)
+)
+
+(def element DMonitor_TextItem(_text:str, _width:number="'auto'", _textAlign:number = "left")
+	(scope
+	)
+
+	(style
+		(bind width "_width")
+	)
+
+	(tf
+		(class $DMonitor_DefaultText)
+		(style
+			(bind width "_width")
+			(bind textAlign "_textAlign")
+			# (bind textColor "fontColor")
+			(elideMode = "true")
+		)
+		(bind text "_text")
+	)
+)
+
+(def element DMonitor_HeaderTextItem(_text:str, _width:number="'auto'", _textAlign:number = "left")
+	(scope
+	)
+
+	(style
+        (marginTop = 3px)
+        (marginBottom = 3px)
+		(bind width "_width")
+	)
+
+	(tf
+		(class $DMonitor_HeaderText)
+		(style
+			(bind width "_width")
+			(bind textAlign "_textAlign")
+			(elideMode = "true")
+		)
+		(bind text "_text")
+	)
+)
+
+(def element DMonitor_ButtonExpand (_isInOverState:bool=false, _isInDownState:bool=false, _expanded:bool=false, _enabled:bool=true) layout=true
+	(scope
+		(event evExpandButtonClicked)
+		(event btnExpand_evMouseUp)
+
+		(macro MOUSE_HANDLER_SCOPE "'btnExpand_'")
+
+		(var isInOverState:bool = "_isInOverState || btnExpand_rollOver && !btnExpand_mouseDown")
+		(var isInDownState:bool = "_isInDownState || btnExpand_rollOver && btnExpand_mouseDown")
+
+		(var targetAlpha:number = "	isInDownState	? 0.6 :
+									isInOverState	? 1
+													: 0.75")
+		(var targetRotation:number = "_expanded ? 90 : 0")
+	)
+
+	(macro MOUSE_HANDLER
+		_enabled = "_enabled"
+		_prefix = "'btnExpand_'"
+		_soundSet = "'dropdown'"
+	)
+	(dispatch btnExpand_evMouseUp on='mouseUp' args="{isDown: false}" (bind enabled "_enabled"))
+	(dispatch evExpandButtonClicked args={} dir="EventDirection.UP" (event "btnExpand_evMouseUp"))
+
+	(style
+		(width = 13px)
+		(height = 13px)
+		(align = "center|middle")
+	)
+
+	(alpha = "targetAlpha")
+
+	(controller $Animation
+		(bindcall play	duration=0.07	to="{alpha: targetAlpha}"	(bind trigger "targetAlpha"))
+	)
+
+	(block
+		(style
+			(hitTest = "false")
+			(backgroundSize = "autosize")
+			(backgroundImage = "'url:../service_kit/buttons/expand_over.png'")
+
+			(pivotX = 50%)
+			(pivotY = 50%)
+			(left = 0%)
+			(right = 0%)
+			(rotation = "targetRotation")
+		)
+
+		(controller $Animation
+			(bindcall play	duration=0.15	to="{rotation: targetRotation}"	(bind trigger "targetRotation"))
+		)
+	)
+)
