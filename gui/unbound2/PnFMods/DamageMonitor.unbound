@@ -6,8 +6,95 @@
 (def constant DMonitor_PLAYER_INFO_WIDTH 120px)
 (def constant DMonitor_SHIP_NAME_WIDTH 90px)
 (def constant DMonitor_DAMAGE_WIDTH 50px)
+(def constant DMonitor_ROW_HEIGHT 15px)
 
 (def constant TT_DAMAGEMONITOR_INSTALLED true)
+
+(def constant DMonitor_FONT_COLORS {
+	DEFAULT     : "FONT_CLASS_TO_COLOR['$FontColorDefault']",
+	BLUE        : "FONT_CLASS_TO_COLOR['$FontColorBuoyancy']",
+    DARK_BLUE   : "FONT_CLASS_TO_COLOR['$FontColorTurquoise']",
+    GREEN       : "FONT_CLASS_TO_COLOR['$FontColorGreen']",
+    LIGHT_GREEN : "FONT_CLASS_TO_COLOR['$FontColorFreeExp']",
+    GOLD        : "FONT_CLASS_TO_COLOR['$FontColorGolden']",
+	ORANGE      : "FONT_CLASS_TO_COLOR['$FontColorOrange']",
+    RED         : "FONT_CLASS_TO_COLOR['$TextColorHUDCriticalPC']",
+
+    ALL         : ['DEFAULT', 'BLUE', 'DARK_BLUE', 'GREEN', 'LIGHT_GREEN', 'GOLD', 'ORANGE', 'RED']
+})
+
+(def constant DMonitor_SHIP_ICON_COLOR_PRESETS [
+	#Use -(234-0x??)
+	#None
+	{
+		Auxiliary:	{},
+		AirCarrier:	{},
+		Battleship:	{},
+		Cruiser:	{},
+		Destroyer: 	{},
+		Submarine:	{},
+	},
+	#Aslain v1
+	{
+		Auxiliary:	{redOffset: -184, greenOffset: -134, blueOffset: -234, alphaOffset:    0},
+		AirCarrier:	{redOffset: -106, greenOffset:  -64, blueOffset:   21, alphaOffset:    0},
+		Battleship:	{redOffset:   21, greenOffset: -106, blueOffset: -106, alphaOffset:    0},
+		Cruiser:	{redOffset:	  21, greenOffset: 	  0, blueOffset: -106, alphaOffset:    0},
+		Destroyer: 	{redOffset:	 -64, greenOffset: 	 21, blueOffset: -106, alphaOffset:    0},
+		Submarine:	{redOffset: -207, greenOffset:    4, blueOffset:   11, alphaOffset:    0},
+	},
+	#Aslain v2
+	{
+		Auxiliary:	{redOffset: -184, greenOffset: -134, blueOffset: -234, alphaOffset:    0},
+		AirCarrier:	{redOffset:  -43, greenOffset: -106, blueOffset:   21, alphaOffset:    0},
+		Battleship:	{redOffset:   21, greenOffset: -106, blueOffset: -106, alphaOffset:    0},
+		Cruiser:	{redOffset:	  21, greenOffset: 	  0, blueOffset: -106, alphaOffset:    0},
+		Destroyer: 	{redOffset:	 -64, greenOffset: 	 21, blueOffset: -106, alphaOffset:    0},
+		Submarine:	{redOffset: -106, greenOffset:  -64, blueOffset:   21, alphaOffset:    0},
+	},
+	#AutoSpy
+	{
+		Auxiliary:	{redOffset: -184, greenOffset: -134, blueOffset: -234, alphaOffset: -128},
+		AirCarrier:	{redOffset: -134, greenOffset: -134, blueOffset: -134, alphaOffset: -128},
+		Battleship:	{redOffset: -234, greenOffset: -184, blueOffset: -154, alphaOffset: -128},
+		Cruiser:	{redOffset: -89,  greenOffset: -159, blueOffset: -234, alphaOffset: -128},
+		Destroyer: 	{redOffset: -184, greenOffset: -134, blueOffset: -184, alphaOffset: -128},
+		Submarine:	{redOffset: -224, greenOffset: -224, blueOffset: -224, alphaOffset: -128},
+	},
+	#Roslich
+	{
+		Auxiliary:	{redOffset:   21, greenOffset: -234, blueOffset:   21, alphaOffset:    0},
+		AirCarrier:	{redOffset:   21, greenOffset:   21, blueOffset: -234, alphaOffset:    0},
+		Battleship:	{redOffset:   21, greenOffset: -234, blueOffset: -234, alphaOffset:    0},
+		Cruiser:	{redOffset: -234, greenOffset: -234, blueOffset:   21, alphaOffset:    0},
+		Destroyer: 	{redOffset: -234, greenOffset:    0, blueOffset: -234, alphaOffset:    0},
+		Submarine:	{redOffset: -234, greenOffset:   21, blueOffset:   21, alphaOffset:    0},
+	},
+	#DeCease
+	{
+		Auxiliary:	{redOffset:   11, greenOffset: -235, blueOffset:   40, alphaOffset:    0},
+		AirCarrier:	{redOffset:   -9, greenOffset:  -60, blueOffset: -119, alphaOffset:    0},
+		Battleship:	{redOffset:  -65, greenOffset:  -74, blueOffset:   40, alphaOffset:    0},
+		Cruiser:	{redOffset:   20, greenOffset:  -76, blueOffset: -128, alphaOffset:    0},
+		Destroyer: 	{redOffset: -137, greenOffset:   11, blueOffset: -124, alphaOffset:    0},
+		Submarine:	{redOffset: -255, greenOffset: -255, blueOffset: -255, alphaOffset:    0},
+	},
+	#Hakabase
+	{
+		Auxiliary:	{redOffset: -184, greenOffset: -134, blueOffset: -234, alphaOffset:  -70},
+		AirCarrier:	{redOffset: -226, greenOffset:   -7, blueOffset:   21, alphaOffset:  -70},
+		Battleship:	{redOffset:   21, greenOffset: -234, blueOffset: -234, alphaOffset:  -70},
+		Cruiser:	{redOffset:	  21, greenOffset: 	 21, blueOffset: -234, alphaOffset:  -70},
+		Destroyer: 	{redOffset:	-234, greenOffset: 	 21, blueOffset: -234, alphaOffset:  -70},
+		Submarine:	{redOffset:   21, greenOffset: -234, blueOffset:  -81, alphaOffset:  -70},
+	},
+])
+
+(def constant DMonitor_DISPLAY_MODE {
+    DISABLE:    0,
+    ENABLE:     1,
+    ADAPTIVE:   2,
+})
 
 (def element DMonitor_DamageMonitor() layout=true
 	(scope
@@ -46,8 +133,12 @@
 
         # Expand
         (event evExpandButtonClicked)
-        (macro TT_GET_PREF_BOOL _varName="'isPanelVisible'" _pref="DMonitor_PREFS.DAMAGE_PANEL_VISIBLE")
-        (bindcall externalCall 'inputMapping.onAction' "['setUserPref', {'value': toNumber(!isPanelVisible) + 0.00001, 'name': 'chatBoxWidth', 'subName': DMonitor_PREFS.DAMAGE_PANEL_VISIBLE.key}]" init=false watch=false (event "evExpandButtonClicked"))
+        (macro TT_GET_PREF_NUMBER _varName="'displayMode'" _pref="DMonitor_PREFS.DISPLAY_MODE")
+
+        (var camera:gfx = "$datahub.getSingleComponent(CC.camera)")
+		(var altVision:bool = "camera.altVision" (event "camera.evAltVisionChanged"))
+        (var isExpanded:bool = "displayMode == DMonitor_DISPLAY_MODE.ADAPTIVE ? altVision : displayMode")
+        (bindcall externalCall 'inputMapping.onAction' "['setUserPref', {'value': toNumber(!isExpanded) + 0.00001, 'name': 'chatBoxWidth', 'subName': DMonitor_PREFS.DISPLAY_MODE.key}]" init=false watch=false (event "evExpandButtonClicked"))
 
         # D&D
         (var elementName:str = "'damageMonitor'")
@@ -58,50 +149,56 @@
         (position = "absolute")
         (bind left "dragPosX")
         (bind top "dragPosY")
-        (bind scaleX "scale")
-        (bind scaleY "scale")
         (align = "middle|center")
     )
 
     # Expand button
     (element DMonitor_ButtonExpand
-        _expanded="isPanelVisible"
+        _expanded="isExpanded"
 
         (style
-            (left = "-25px")
-            (top = 30px)
+            (left = -24px)
+            (top = 5px)
             (position = "absolute")
             (hitTest = true)
         )
     )
-
-    (controller $Instance renderer='ModDraggableElement'
-        (bind enabled "!isPositionLocked")
-        (args
-            _wndName="elementName"
-            _defaults="defaultPos"
-        )
-    )
-
+    # Setting
     (element TT_ConfigButtonElement _modIndex = "13"
         (style
             (left = -30px)
+            (top = 20px)
         )
     )
-
-    (mc contrast_panel
-        (class $FullsizeAbsolute)
+    
+    (block
         (style
-            (bind alpha "backgroundAlpha")
-            (hitTest = false)
+            (bind scaleX "scale")
+            (bind scaleY "scale")
         )
-    )
 
-    (element DMonitor_DamagePanelElement
-        _targetAvatarId="_targetAvatarId"
-        _userPrefsNum="_userPrefsNum"
+        (controller $Instance renderer='ModDraggableElement'
+            (bind enabled "!isPositionLocked")
+            (args
+                _wndName="elementName"
+                _defaults="defaultPos"
+            )
+        )
 
-        (bind visible "isPanelVisible")
+        (mc contrast_panel
+            (class $FullsizeAbsolute)
+            (style
+                (bind alpha "backgroundAlpha")
+                (hitTest = false)
+            )
+        )
+
+        (element DMonitor_DamagePanelElement
+            _targetAvatarId="_targetAvatarId"
+            _userPrefsNum="_userPrefsNum"
+
+            (bind visible "isExpanded")
+        )
     )
 )
 
@@ -131,7 +228,7 @@
             (hitTest = false)
         )
 
-        (element DMonitor_HeaderTextItem _text="playerName")
+        (element DMonitor_HeaderTextItem _text="playerName" _userPrefsNum="_userPrefsNum")
 
         (block
             (style
@@ -145,7 +242,7 @@
             )
         )
 
-        (element DMonitor_HeaderTextItem _text="shipName")
+        (element DMonitor_HeaderTextItem _text="shipName" _userPrefsNum="_userPrefsNum")
     )
 
 
@@ -294,9 +391,14 @@
     (scope
         (event evShow)
 
-        (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'" _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
-        (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'" _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
+        (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
+        (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
         (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
+        (macro TT_GET_PREF_BOOL   _varName="'isShipTypeVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON")
+        (macro TT_GET_PREF_BOOL   _varName="'isShipNameVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.SHIP_NAME")
+        (macro TT_GET_PREF_BOOL   _varName="'isPlayerNameVisible'"      _pref="DMonitor_PREFS.PLAYER_INFO.PLAYER_NAME")
+
+        (var totalWidth:number = "(DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier * isPlayerNameVisible) + (DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier * isShipNameVisible) + DMonitor_DAMAGE_WIDTH + (SHIP_ICON_SIZE.WIDTH * isShipTypeVisible)")
 
         (var titleLabel:str = "_isInflictedDamage ? 'IDS_BATTLE_STATS_CAUSED_DAMAGE' : 'IDS_TAKEN_DAMAGE_HINT'")
 
@@ -336,7 +438,7 @@
 
     (style
         (align = "middle|center")
-        (bind width "DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier + DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier + DMonitor_DAMAGE_WIDTH + SHIP_ICON_SIZE.WIDTH")
+        (bind width "totalWidth")
     )
 
     (block
@@ -352,13 +454,13 @@
         (bind colorTransform "_colorTransform")
     )
 
-    (element DMonitor_HeaderTextItem _text="tr(titleLabel)"
+    (element DMonitor_HeaderTextItem _text="tr(titleLabel)" _userPrefsNum="_userPrefsNum"
         (style
             (marginTop = 5px)
         )
     )
 
-    (element DMonitor_HeaderTextItem _text="ceil(animatedDamage)"
+    (element DMonitor_HeaderTextItem _text="ceil(animatedDamage)" _userPrefsNum="_userPrefsNum"
         (style
             (marginBottom = 5px)
         )
@@ -372,7 +474,12 @@
         (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
         (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
         (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
+        (macro TT_GET_PREF_NUMBER _varName="'rowHeightOffset'"          _pref="DMonitor_PREFS.ROW_HEIGHT")
+        
+        (macro TT_GET_PREF_BOOL   _varName="'isShipNameVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.SHIP_NAME")
+        (macro TT_GET_PREF_BOOL   _varName="'isShipTypeVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON")
         (macro TT_GET_PREF_BOOL   _varName="'isClanTagVisible'"         _pref="DMonitor_PREFS.PLAYER_INFO.CLAN_NAME")
+        (macro TT_GET_PREF_BOOL   _varName="'isPlayerNameVisible'"      _pref="DMonitor_PREFS.PLAYER_INFO.PLAYER_NAME")
 
         (var playerInfoWidth:number = "DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier")
         (var shipInfoWidth:number = "DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier")
@@ -405,7 +512,7 @@
         
         (style
             (bind flow "flowDirection")
-            (height = 20px)
+            (bind height "DMonitor_ROW_HEIGHT + rowHeightOffset")
             (align = "middle|center")
             (bind alpha "isDataAvailable")
         )
@@ -425,68 +532,88 @@
         )
 
         # Player Name
-        (element DMonitor_TextItem _text="playerName" _width="playerInfoWidth" _textAlign="nameAlign")
+        (block
+            (controller $Instance renderer='DMonitor_TextItem'
+                (bind enabled "isPlayerNameVisible")
+                (args
+                    _text="playerName" _width="playerInfoWidth" _textAlign="nameAlign" _userPrefsNum="_userPrefsNum"
+                )
+            )
+        )
 
         # Ship Icon
         (block
-            (style
-                (width = "SHIP_ICON_SIZE.WIDTH")
-                (height = "SHIP_ICON_SIZE.HEIGHT")
-                (pivotX = 50%)
-                (bind scaleX "scaleDirection")
-            )
-            (block
-                (style
-                    (bind backgroundImage "shipIcon")
+            (controller $Instance renderer='DMonitor_ShipIconItem'
+                (bind enabled "isShipTypeVisible")
+                (args
+                    _shipType="shipType"
+                    _iconDir="scaleDirection"
+                    _userPrefsNum="_userPrefsNum"
                 )
             )
         )
 
         # Ship Name
-        (element DMonitor_TextItem _text="shipName" _width="shipInfoWidth"  _textAlign="nameAlign")
+        (block
+            (controller $Instance renderer='DMonitor_TextItem'
+                (bind enabled "isShipNameVisible")
+                (args
+                    _text="shipName" _width="shipInfoWidth"  _textAlign="nameAlign" _userPrefsNum="_userPrefsNum"
+                )
+            )
+        )
 
         # Damage
-        (element DMonitor_TextItem _text="damage" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center")
+        (element DMonitor_TextItem _text="damage" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center" _userPrefsNum="_userPrefsNum")
     )
     (element HorizontalDividerTwoPx)
 )
 
+(def element DMonitor_ShipIconItem (_shipType:str, _iconDir:number, _userPrefsNum:gfx=null)
+    (scope
+        (macro TT_GET_PREF_NUMBER _varName="'shipTypeStylePrefIndex'"	_pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON_STYLE_INDEX")
+
+        (var shipTypeStyleIndex:number = "shipTypeStylePrefIndex < DMonitor_SHIP_ICON_COLOR_PRESETS.length ? shipTypeStylePrefIndex : 0")
+		(var shipTypeStyle:dict = "DMonitor_SHIP_ICON_COLOR_PRESETS[shipTypeStyleIndex]")
+        (var shipTypeCT:dict = "_shipType in shipTypeStyle ? shipTypeStyle[_shipType] : {}")
+
+        (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(_shipType) + '.png'")
+    )
+
+    (style
+        (width = "SHIP_ICON_SIZE.WIDTH")
+        (height = "SHIP_ICON_SIZE.HEIGHT")
+        (pivotX = 50%)
+        (bind scaleX "_iconDir")
+    )
+    (block
+        # For better edge for colored icons
+        (style
+            (bind backgroundImage "shipIcon")
+        )
+    )
+    (block
+        (style
+            (bind backgroundImage "shipIcon")
+        )
+        (bind colorTransform "shipTypeCT")
+    )
+)
+
 (def css $DMonitor_DefaultText()
-	(extends $TextDefaultNM)
+	(extends $TextDefault)
 	(extends $FontEnableReadability)
-	(filters 
-		(dropShadow 
-			(distance = 1)
-			(angle = 90)
-			(color = 0x08222a)
-			(alpha = 0.5)
-			(blurX = 2.0)
-			(blurY = 2.0)
-			(strength = 1.0)
-			(quality = 2)
-		)
-	)
 )
 
 (def css $DMonitor_HeaderText()
 	(extends $TextDefaultBold17NM)
 	(extends $FontEnableReadability)
-	(filters 
-		(dropShadow 
-			(distance = 1)
-			(angle = 90)
-			(color = 0x08222a)
-			(alpha = 0.5)
-			(blurX = 2.0)
-			(blurY = 2.0)
-			(strength = 1.0)
-			(quality = 2)
-		)
-	)
 )
 
-(def element DMonitor_TextItem(_text:str, _width:number="'auto'", _textAlign:number = "left")
+(def element DMonitor_TextItem(_text:str, _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
 	(scope
+        (macro TT_GET_PREF_NUMBER _varName="'fontStyleIndexPref'" _pref="DMonitor_PREFS.FONT_STYLE_INDEX")
+        (macro DMonitor_GET_FONT_COLOR _varName="'fontColor'" _prefValue="fontStyleIndexPref")
 	)
 
 	(style
@@ -498,15 +625,17 @@
 		(style
 			(bind width "_width")
 			(bind textAlign "_textAlign")
-			# (bind textColor "fontColor")
+			(bind textColor "fontColor")
 			(elideMode = "true")
 		)
 		(bind text "_text")
 	)
 )
 
-(def element DMonitor_HeaderTextItem(_text:str, _width:number="'auto'", _textAlign:number = "left")
+(def element DMonitor_HeaderTextItem(_text:str, _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
 	(scope
+        (macro TT_GET_PREF_NUMBER _varName="'fontStyleIndexPref'" _pref="DMonitor_PREFS.FONT_STYLE_INDEX")
+        (macro DMonitor_GET_FONT_COLOR _varName="'fontColor'" _prefValue="fontStyleIndexPref")
 	)
 
 	(style
@@ -520,6 +649,7 @@
 		(style
 			(bind width "_width")
 			(bind textAlign "_textAlign")
+            (bind textColor "fontColor")
 			(elideMode = "true")
 		)
 		(bind text "_text")
@@ -548,7 +678,7 @@
 		_soundSet = "'dropdown'"
 	)
 	(dispatch btnExpand_evMouseUp on='mouseUp' args="{isDown: false}" (bind enabled "_enabled"))
-	(dispatch evExpandButtonClicked args={} dir="EventDirection.UP" (event "btnExpand_evMouseUp"))
+	(dispatch evExpandButtonClicked args={} watch=false init=false dir="EventDirection.UP" (event "btnExpand_evMouseUp"))
 
 	(style
 		(width = 13px)
@@ -579,4 +709,11 @@
 			(bindcall play	duration=0.15	to="{rotation: targetRotation}"	(bind trigger "targetRotation"))
 		)
 	)
+)
+
+(def macro DMonitor_GET_FONT_COLOR (_varName:expression="'fontColor'", _prefValue:expression="0")
+    (var __fontColorIndex:number = "_prefValue < DMonitor_FONT_COLORS.ALL.length ? _prefValue : 0")
+    (var __fontColorName:str = "DMonitor_FONT_COLORS.ALL[__fontColorIndex]")
+
+    (var name="_varName" type=number value="DMonitor_FONT_COLORS[__fontColorName]")
 )
