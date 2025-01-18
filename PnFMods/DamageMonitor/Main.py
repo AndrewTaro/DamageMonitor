@@ -169,7 +169,8 @@ class DamageMonitor(object):
         victimId = victim.id
 
         for damageData in damages:
-            damage = round(damageData['damage'])
+            # damage = round(damageData['damage'])
+            damage = damageData['damage']
             if damage <= 0:
                 # Do nothing if damage is 0 or negative.
                 # This includes frinedly fires
