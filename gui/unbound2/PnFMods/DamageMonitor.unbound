@@ -406,7 +406,7 @@
 
         (var titleLabel:str = "_isInflictedDamage ? 'IDS_BATTLE_STATS_CAUSED_DAMAGE' : 'IDS_TAKEN_DAMAGE_HINT'")
 
-        (var totalDamage:number = "'totalDamage' in _damageData ? _damageData.totalDamage : 0")
+        (var totalDamage:number = "'totalDamage' in _damageData ? floor(_damageData.totalDamage) : 0")
         (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
         (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")
         (var barScale:number = "scaleDirection * totalDamage / scaleBase")
@@ -498,7 +498,7 @@
         (var shipName:str = "avatarComponent ? tr(ship.nameIDS) : ''")
 		(var shipType:str = "avatarComponent ? ship.subtype : ''")
 
-        (var damage:number = "_playerId in _damageData ? _damageData[_playerId] : 0")
+        (var damage:number = "_playerId in _damageData ? floor(_damageData[_playerId]) : 0")
 
         # Style
         (var nameAlign:number = "_isInflictedDamage ? right : left")
