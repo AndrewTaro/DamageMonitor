@@ -619,7 +619,7 @@
 	(extends $FontEnableReadability)
 )
 
-(def element DMonitor_TextItem(_text:str, _isBold:bool=false _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
+(def element DMonitor_TextItem(_text:str, _isBold:bool=false, _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
 	(scope
         (macro TT_GET_PREF_NUMBER _varName="'fontStyleIndexPref'" _pref="DMonitor_PREFS.FONT_STYLE_INDEX")
         (macro DMonitor_GET_FONT_COLOR _varName="'fontColor'" _prefValue="fontStyleIndexPref")
