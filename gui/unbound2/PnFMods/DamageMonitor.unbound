@@ -408,8 +408,7 @@
 
         (var totalDamage:number = "'totalDamage' in _damageData ? floor(_damageData.totalDamage) : 0")
         (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
-        (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")
-        (var barScale:number = "scaleDirection * totalDamage / scaleBase")
+        (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")        
 
         (var flowDirection:number = "_isInflictedDamage ? Flow.REVERSE_HORIZONTAL : Flow.HORIZONTAL")
 
@@ -436,6 +435,7 @@
                             
 			)
 		)
+        (var barScale:number = "scaleDirection * animatedDamage / scaleBase")
     )
 
     (dispatch evShow on='addedToStage')
@@ -474,6 +474,7 @@
 
 (def element DMonitor_DamageRowElement(_playerId:str, _damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
     (scope
+        (event evShow)
         #
         (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
         (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
@@ -507,10 +508,37 @@
         (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")
 
         (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
-        (var barScale:number = "scaleDirection * damage / scaleBase")
+
+        (var animatedDamage:number = "0" watch=false)
+        (bind animatedDamage "0" watch=false init=false (bind trigger "_playerId"))
+        (controller $Animation
+            # Increasing damage
+			(bindcall play	duration = 0.6
+							to = "{ animatedDamage: damage}"
+							easing="Easing.cubic_out"
+                            watch=false
+							(bind trigger "damage")
+                            (bind enabled "damage > animatedDamage")
+							(event "evShow")
+			)
+            # Decreasing: changed target
+            (bindcall play	duration = 0.01
+							to = "{ animatedDamage: damage}"
+							easing="Easing.line"
+                            watch=false
+                            action="killAll"
+							(bind trigger "damage")
+                            (bind enabled "damage < animatedDamage")
+							(event "evShow")
+                            
+			)
+		)
+        (var barScale:number = "scaleDirection * animatedDamage / scaleBase")
 
         (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png'")
     )
+
+    (dispatch evShow on='addedToStage')
 
     (block
         
@@ -568,7 +596,7 @@
         )
 
         # Damage
-        (element DMonitor_TextItem _text="damage" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center" _userPrefsNum="_userPrefsNum")
+        (element DMonitor_TextItem _text="ceil(animatedDamage)" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center" _userPrefsNum="_userPrefsNum")
     )
     (element HorizontalDividerTwoPx)
 )
