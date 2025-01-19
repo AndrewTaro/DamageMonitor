@@ -8,6 +8,8 @@
 (def constant DMonitor_DAMAGE_WIDTH 50px)
 (def constant DMonitor_ROW_HEIGHT 15px)
 
+(def constant DMonitor_ANIM_DURATION 0.6)
+
 (def constant TT_DAMAGEMONITOR_INSTALLED true)
 
 (def constant DMonitor_FONT_COLORS {
@@ -415,7 +417,7 @@
         (var animatedDamage:number = "0" watch=false)
         (controller $Animation
             # Increasing damage
-			(bindcall play	duration = 0.6
+			(bindcall play	duration = "DMonitor_ANIM_DURATION"
 							to = "{ animatedDamage: totalDamage}"
 							easing="Easing.cubic_out"
                             watch=false
@@ -424,7 +426,8 @@
 							(event "evShow")
 			)
             # Decreasing: changed target
-            (bindcall play	duration = 0.01
+            (bindcall play	duration = "DMonitor_ANIM_DURATION"
+                            from = "{ animatedDamage: 0}"
 							to = "{ animatedDamage: totalDamage}"
 							easing="Easing.line"
                             watch=false
@@ -513,7 +516,7 @@
         (bind animatedDamage "0" watch=false init=false (bind trigger "_playerId"))
         (controller $Animation
             # Increasing damage
-			(bindcall play	duration = 0.6
+			(bindcall play	duration = "DMonitor_ANIM_DURATION"
 							to = "{ animatedDamage: damage}"
 							easing="Easing.cubic_out"
                             watch=false
