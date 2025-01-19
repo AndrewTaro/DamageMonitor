@@ -25,7 +25,8 @@ RECEIVED_DAMAGE_COMPONENT_KEY = 'modDamageMonitorReceivedKey'
 TARGET_COMPONENT_KEY = 'modDamageMonitorTargetKey'
 
 INF = float('inf')
-SCALE_BASE_DAMAGE_STEP = 50000
+SCALE_BASE_DAMAGE_STEP  = 50000
+SCALE_BASE_MULTIPLIER   = 1.12
 
 def sortKey(d):
     return d.get('totalDamage', 0)
@@ -85,7 +86,7 @@ class DamageMonitor(object):
 
         events.onBattleShown(self.init)
         events.onBattleQuit(self.kill)
-        events.onReceiveDamagesOnShip(self.onDamagesUpdated)
+        events.onReceiveDamagesOnShip(self.onDamagesReceived)
         logInfo('Created instance')
 
     def init(self, *args):
@@ -95,6 +96,7 @@ class DamageMonitor(object):
         self._targetTracker.init()
         self._clearDamages()
         self._createEntities()
+        logInfo('Started Monitor')
 
     def kill(self, *args):
         """
@@ -104,28 +106,35 @@ class DamageMonitor(object):
             self._targetTracker.kill()
             self._clearDamages()
             self._removeEntities()
+            logInfo('Killed Monitor')
         except Exception, e:
             logError('Error while killing damage monitor: {}'.format(e))
 
     def __updateReceivedDamage(self, attackerId, victimId, damage):
-        if victimId not in self._receivedDamage:
+        rDamage = self._receivedDamage
+        if victimId not in rDamage:
             receivedDamage = dict(totalDamage=0, attackerIds=[])
         else:
-            receivedDamage = dict(self._receivedDamage[victimId])
+            receivedDamage = dict(rDamage[victimId])
         receivedDamage['totalDamage'] += damage
+        if rDamage['maxDamage'] < receivedDamage['totalDamage']:
+            rDamage['maxDamage'] = receivedDamage['totalDamage']
         if attackerId not in receivedDamage:
             receivedDamage[attackerId] = 0
         receivedDamage[attackerId] += damage
         receivedDamage['attackerIds'].append(attackerId) if attackerId not in receivedDamage['attackerIds'] else None
-        self._receivedDamage[victimId] = receivedDamage
+        rDamage[victimId] = receivedDamage
 
     def __updateInflictedDamage(self, attackerId, victimId, damage):
-        if attackerId not in self._inflictedDamage:
+        iDamage = self._inflictedDamage
+        if attackerId not in iDamage:
             playerDamage = dict(totalDamage=0, victimIds=[])
         else:
-            playerDamage = dict(self._inflictedDamage[attackerId])
+            playerDamage = dict(iDamage[attackerId])
         # Total Damage vs All Enemies
         playerDamage['totalDamage'] += damage
+        if iDamage['maxDamage'] < playerDamage['totalDamage']:
+            iDamage['maxDamage'] = playerDamage['totalDamage']
         # Total Damage vs Specific Enemy
         if victimId not in playerDamage:
             playerDamage[victimId] = 0
@@ -135,7 +144,7 @@ class DamageMonitor(object):
         # Maybe just replace this with .keys()
         playerDamage['victimIds'].append(victimId) if victimId not in playerDamage['victimIds'] else None
 
-        self._inflictedDamage[attackerId] = playerDamage
+        iDamage[attackerId] = playerDamage
 
     def __updateTeamDamage(self, attackerTeamId, damage):
         if attackerTeamId not in self._teamTotalDamage:
@@ -143,13 +152,13 @@ class DamageMonitor(object):
         self._teamTotalDamage[attackerTeamId] += damage
 
     def __updateDamageScaleBase(self):
-        maxTotalInflictedDamage = max(self._inflictedDamage.itervalues(), key=sortKey)['totalDamage'] if len(self._inflictedDamage) > 0 else 0
-        maxTotalReceivedDamage = max(self._receivedDamage.itervalues(),   key=sortKey)['totalDamage'] if len(self._receivedDamage)  > 0 else 0
-        maxDamage = max(maxTotalInflictedDamage, maxTotalReceivedDamage)
+        maxInflictedDamage = self._inflictedDamage['maxDamage']
+        maxReceivedDamage = self._receivedDamage['maxDamage']
+        maxDamage = max(maxInflictedDamage, maxReceivedDamage)
         # x1.12: Slight offset because the damage bar shouldnt be "100%"
-        self._teamTotalDamage['personalDamageScaleBase'] = ((maxDamage * 1.12 // SCALE_BASE_DAMAGE_STEP) + 1) * SCALE_BASE_DAMAGE_STEP
+        self._teamTotalDamage['personalDamageScaleBase'] = ((maxDamage * SCALE_BASE_MULTIPLIER // SCALE_BASE_DAMAGE_STEP) + 1) * SCALE_BASE_DAMAGE_STEP
 
-    def onDamagesUpdated(self, victimId, damages):
+    def onDamagesReceived(self, victimId, damages):
         """
         Update internal dicts
         
@@ -213,7 +222,9 @@ class DamageMonitor(object):
         Clear internal dicts
         """
         self._inflictedDamage.clear()
+        self._inflictedDamage['maxDamage'] = 0
         self._receivedDamage.clear()
+        self._receivedDamage['maxDamage'] = 0
         self._teamTotalDamage.clear()
 
     def _createEntities(self):
