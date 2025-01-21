@@ -1,7 +1,7 @@
 API_VERSION = 'API_v1.0'
 MOD_NAME = 'DamageMonitor'
 
-from Math import Vector4
+
 from EntityController import EntityController
 
 try:
@@ -27,9 +27,6 @@ TARGET_COMPONENT_KEY = 'modDamageMonitorTargetKey'
 INF = float('inf')
 SCALE_BASE_DAMAGE_STEP  = 50000
 SCALE_BASE_MULTIPLIER   = 1.12
-
-def sortKey(d):
-    return d.get('totalDamage', 0)
 
 
 class TargetTracker(object):
