@@ -351,16 +351,22 @@
         # Relation
         (var relationComponent:gfx = "avatarEntity && avatarEntity.hasComponent(CC.relation) ? avatarEntity.relation : null" (event "avatarEntity.evAdded"))
         (var relationValue:number = "relationComponent ? relationComponent.value : 0" (event "relationComponent.evChanged"))
-		(var isAlly:bool = "relationComponent && isIn(relationValue, [SC.Battle.PLAYER_RELATION.ALLY, SC.Battle.PLAYER_RELATION.SELF])" (event "relationComponent.evChanged"))
+		(var isAlly:bool = "relationComponent && relationValue == SC.Battle.PLAYER_RELATION.ALLY")
+        (var isSelf:bool = "relationComponent && relationValue == SC.Battle.PLAYER_RELATION.SELF")
         
         # CT
-        (var relationName:str = "isAlly ? _isInflictedDamage ? 'ally'
-                                                             : 'enemy'
-                                        : _isInflictedDamage ? 'enemy'
-                                                             : 'ally'"
+        (var relationName:str = "_isInflictedDamage ?
+                                        isSelf  ? 'self' :
+                                        isAlly  ? 'ally'
+                                                : 'enemy'
+                                :
+                                        isAlly || isSelf    ? 'enemy'
+                                                            : 'ally'"
         )
 
-        (var markerColorTransform:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
+        (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
+        (var baseColorTransform:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
+        (var markerColorTransform:dict = "{redOffset: baseColorTransform.redOffset, greenOffset: baseColorTransform.greenOffset, blueOffset: baseColorTransform.blueOffset, alphaMultiplier: barAlpha}")
     )
 
     (style
@@ -399,7 +405,6 @@
 
         (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
         (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
-        (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
         (macro TT_GET_PREF_BOOL   _varName="'isShipTypeVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON")
         (macro TT_GET_PREF_BOOL   _varName="'isShipNameVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.SHIP_NAME")
         (macro TT_GET_PREF_BOOL   _varName="'isPlayerNameVisible'"      _pref="DMonitor_PREFS.PLAYER_INFO.PLAYER_NAME")
@@ -455,7 +460,6 @@
             (backgroundSize = "fill")
             (bind scaleX "barScale")
             (bind left "_isInflictedDamage ? 0% : 100%")
-            (bind alpha "barAlpha")
         )
 
         (bind colorTransform "_colorTransform")
@@ -481,7 +485,6 @@
         #
         (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
         (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
-        (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
         (macro TT_GET_PREF_NUMBER _varName="'rowHeightOffset'"          _pref="DMonitor_PREFS.ROW_HEIGHT")
         
         (macro TT_GET_PREF_BOOL   _varName="'isShipNameVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.SHIP_NAME")
@@ -560,7 +563,6 @@
                 (backgroundSize = "fill")
                 (bind scaleX "barScale")
                 (bind left "_isInflictedDamage ? 0% : 100%")
-                (bind alpha "barAlpha")
             )
 
             (bind colorTransform "_colorTransform")
