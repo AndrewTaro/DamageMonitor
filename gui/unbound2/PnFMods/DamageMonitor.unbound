@@ -236,17 +236,7 @@
 
         (element DMonitor_HeaderTextItem _text="playerName" _userPrefsNum="_userPrefsNum")
 
-        (block
-            (style
-                (width = "SHIP_ICON_SIZE.WIDTH")
-                (height = "SHIP_ICON_SIZE.HEIGHT")
-            )
-            (block
-                (style
-                    (bind backgroundImage "shipIcon")
-                )
-            )
-        )
+        (element DMonitor_ShipIconItem _shipType="shipType" _iconDir=1 _userPrefsNum="_userPrefsNum")
 
         (element DMonitor_HeaderTextItem _text="shipName" _userPrefsNum="_userPrefsNum")
     )
@@ -365,8 +355,8 @@
         )
 
         (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
-        (var baseColorTransform:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
-        (var markerColorTransform:dict = "{redOffset: baseColorTransform.redOffset, greenOffset: baseColorTransform.greenOffset, blueOffset: baseColorTransform.blueOffset, alphaMultiplier: barAlpha}")
+        (var baseCT:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
+        (var markerColorTransform:dict = "{redOffset: baseCT.redOffset, greenOffset: baseCT.greenOffset, blueOffset: baseCT.blueOffset, alphaMultiplier: barAlpha}")
     )
 
     (style
@@ -434,7 +424,7 @@
             (bindcall play	duration = "DMonitor_ANIM_DURATION"
                             from = "{ animatedDamage: 0}"
 							to = "{ animatedDamage: totalDamage}"
-							easing="Easing.line"
+							easing="Easing.cubic_out"
                             watch=false
                             action="killAll"
 							(bind trigger "totalDamage")
@@ -516,7 +506,6 @@
         (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
 
         (var animatedDamage:number = "0" watch=false)
-        (bind animatedDamage "0" watch=false init=false (bind trigger "_playerId"))
         (controller $Animation
             # Increasing damage
 			(bindcall play	duration = "DMonitor_ANIM_DURATION"
@@ -528,9 +517,10 @@
 							(event "evShow")
 			)
             # Decreasing: changed target
-            (bindcall play	duration = 0.01
+            (bindcall play	duration = "DMonitor_ANIM_DURATION"
+                            from = "{ animatedDamage: 0}"
 							to = "{ animatedDamage: damage}"
-							easing="Easing.line"
+							easing="Easing.cubic_out"
                             watch=false
                             action="killAll"
 							(bind trigger "damage")
@@ -540,8 +530,6 @@
 			)
 		)
         (var barScale:number = "scaleDirection * animatedDamage / scaleBase")
-
-        (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png'")
     )
 
     (dispatch evShow on='addedToStage')
