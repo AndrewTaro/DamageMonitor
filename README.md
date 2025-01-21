@@ -2,6 +2,8 @@
 This mod monitors and provides detailed information on the damage dealt to visible ships.  
 The damages against non-spotted ships will not be tracked.
 
+[TTaro Team Panel](../../../TTaroTeamPanel) allows you to view the information of dead players via the tooltip.
+
 ![image](https://github.com/user-attachments/assets/950183b1-1c25-44ed-82f6-7816f4ab1867)
 
 # Install
