@@ -63,7 +63,7 @@ class TargetTracker(object):
             # Error within getObserverShip
             vehicle = None
 
-        if vehicle is None and self._isObserver:
+        if vehicle is None and not self._isObserver:
             vehicle = battle.getSelfPlayerShip()
 
         vehicleId = vehicle._Ship__id if vehicle else None
