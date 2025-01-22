@@ -34,11 +34,13 @@ class TargetTracker(object):
         self._entityController = EntityController(TARGET_COMPONENT_KEY)
         self._vary = None
         self._targetVehicleId = None
+        self._isObserver = False
 
     def init(self, *rags):
         self._entityController.createEntity()
         self._targetVehicleId = None
         self._vary = callbacks.callback(0.1, self.__updateTargetVehicle)
+        self._isObserver = battle.isObserverMode()
 
     def kill(self, *args):
         try:
@@ -46,6 +48,7 @@ class TargetTracker(object):
             self._vary = None
             self._targetVehicleId = None
             self._entityController.removeEntity()
+            self._isObserver = False
 
         except Exception, e:
             logError('Error while killing target tracker {}'.format(e))
@@ -54,13 +57,15 @@ class TargetTracker(object):
         """
         Called by Vary and checks vehicle entity near the center of the screen
         """
-        vehicle = battle.getObserverShip()
-        if vehicle is None:
-            try:
-                vehicle = battle.getSelfPlayerShip()
-            except:
-                # observer
-                pass
+        try:
+            vehicle = battle.getObserverShip()
+        except AttributeError:
+            # Error within getObserverShip
+            vehicle = None
+
+        if vehicle is None and self._isObserver:
+            vehicle = battle.getSelfPlayerShip()
+
         vehicleId = vehicle._Ship__id if vehicle else None
         if self._targetVehicleId != vehicleId:
             targetInfo = battle.getPlayerByVehicleId(vehicleId)
