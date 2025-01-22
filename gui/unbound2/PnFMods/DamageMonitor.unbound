@@ -416,6 +416,7 @@
 							to = "{ animatedDamage: totalDamage}"
 							easing="Easing.cubic_out"
                             watch=false
+                            action="killAll"
 							(bind trigger "totalDamage")
                             (bind enabled "totalDamage > animatedDamage")
 							(event "evShow")
@@ -512,6 +513,7 @@
 							to = "{ animatedDamage: damage}"
 							easing="Easing.cubic_out"
                             watch=false
+                            action="killAll"
 							(bind trigger "damage")
                             (bind enabled "damage > animatedDamage")
 							(event "evShow")
