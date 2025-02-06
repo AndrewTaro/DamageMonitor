@@ -59,8 +59,9 @@ class TargetTracker(object):
         """
         try:
             vehicle = battle.getObserverShip()
-        except AttributeError:
+        except:
             # Error within getObserverShip
+            # it happens in the scenario mode
             vehicle = None
 
         if vehicle is None and not self._isObserver:
@@ -191,6 +192,11 @@ class DamageMonitor(object):
                 continue
 
             attacker = battle.getPlayerByVehicleId(damageData['vehicleID'])
+            if attacker is None:
+                # Damage from Forts in scenario
+                # "vehicleID" but entity is not actually a vehicle
+                continue
+
             attackerId = attacker.id
 
             attackers.add(attackerId)
