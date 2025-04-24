@@ -149,7 +149,7 @@
         # D&D
         (var elementName:str = "'damageMonitor'")
 		(var defaultPos:dict = "{positionX: (stageWidth / 2), positionY: (stageHeight - 200)}")
-		(macro DRAGGABLE_GET_DROP_POSITION _wndName="elementName" _defaults="defaultPos")
+		(macro DRAGGABLE_GET_DROP_POSITION _elementName="elementName" _defaultPosition="defaultPos")
     )
     (style
         (position = "absolute")
@@ -186,8 +186,8 @@
         (controller $Instance renderer='ModDraggableElement'
             (bind enabled "!isPositionLocked")
             (args
-                _wndName="elementName"
-                _defaults="defaultPos"
+                _elementName="elementName"
+                _defaultPosition="defaultPos"
             )
         )
 
