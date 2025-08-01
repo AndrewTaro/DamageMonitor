@@ -125,6 +125,7 @@
 		(bind height "stageHeight")
 		#(hitTest = false)
 	)
+    (bind visible "!isSpectatorTrainingMode")
 
     (element DMonitor_DetailedDamageElement _targetAvatarId="targetAvatarId" _userPrefsNum="_userPrefsNum")
 )
