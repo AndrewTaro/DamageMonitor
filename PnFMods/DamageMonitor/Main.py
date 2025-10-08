@@ -80,6 +80,7 @@ class DamageMonitor(object):
         self._inflictedDamage = {} # {attackerId: {totalDamage, {victimId: damage, ...}}, ...}
         self._receivedDamage = {}
         self._teamTotalDamage = {}
+        self._clearDamages() # When the client restarts during the ongoing battle, onReceiveDamagesOnShip will be called before onBattleShown
 
         self._targetTracker = TargetTracker()
 
@@ -97,7 +98,6 @@ class DamageMonitor(object):
         Called onBattleStart
         """
         self._targetTracker.init()
-        self._clearDamages()
         self._createEntities()
         logInfo('Started Monitor')
 
