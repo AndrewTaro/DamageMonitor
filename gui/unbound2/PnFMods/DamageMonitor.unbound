@@ -111,7 +111,7 @@
 		(var targetEntity:gfx = "targetEntityWatcher.entity" (event "targetEntityWatcher.event"))
 		(var targetDataComponent:gfx = "targetEntity ? targetEntity.mods_DataComponent : null")
 		(var targetData:dict = "targetDataComponent ? targetDataComponent.data : {}" (event "targetDataComponent.evDataChanged"))
-		(var targetId:str = "'avatarId' in targetData ? toString(targetData.avatarId) : ''")
+		(var targetId:str = "'avatarId' in targetData ? targetData.avatarId : ''")
 
         (var playerAvatar:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
         (var ownId:str = "playerAvatar ? playerAvatar.avatar.id : ''")
