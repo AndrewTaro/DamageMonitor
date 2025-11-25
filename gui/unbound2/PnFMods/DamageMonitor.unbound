@@ -110,17 +110,17 @@
         (var targetEntityWatcher:gfx = "$datahub.getPrimWatcher(CC.mods_DataComponent, DMonitor_TARGET_COMPONENT_KEY)")
 		(var targetEntity:gfx = "targetEntityWatcher.entity" (event "targetEntityWatcher.event"))
 		(var targetDataComponent:gfx = "targetEntity ? targetEntity.mods_DataComponent : null")
-		(var targetData:dict = "targetDataComponent ? targetDataComponent.data : {}" (event "targetDataComponent.evDataChanged"))
-		(var targetId:str = "'avatarId' in targetData ? targetData.avatarId : null")
+		(var targetData:dict = "targetDataComponent ? targetDataComponent.data : null" (event "targetDataComponent.evDataChanged"))
+		(var targetId:str = "targetData && targetData['avatarId'] ? toString(targetData.avatarId) : null")
         # 'avatarId' in targetData ? targetData.avatarId : ''
         #
         # Using an empty string causes the following error:
         #   `String '' is not a valid number`
-        # Yeah of course that's the whole point of STRING. WHY IS IT TRYING TO CONVERT TO STRING?!
+        # Yeah of course that's the whole point of STRING. WHY IS IT TRYING TO CONVERT IT TO STRING?!
         #
         # Maybe, the type cast also occurs inside of the expression, in addition to the final variable update.
-        # e.g. If the type of `targetData.avatarId` is number, then gets replaced by the '',
-        # the expression tries to convert '' into number because the value was internally number type?
+        # e.g. If the type of `targetData.avatarId` is number, and then gets replaced by the '',
+        # the expression tries to convert '' into number because the value in the same position was internally number type?
 
         (var playerAvatar:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
         (var ownId:str = "playerAvatar ? playerAvatar.avatar.id : ''")
