@@ -18,4 +18,3 @@ The damages against non-spotted ships will not be tracked.
 # Requirements
 You must install the following in order to use the mod.
 - [TTaro Mod Config](../../../TTaroModConfig)
-- [Draggable](../../../DraggableUnbound2)

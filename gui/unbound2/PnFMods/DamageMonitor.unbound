@@ -10,21 +10,6 @@
 
 (def constant DMonitor_ANIM_DURATION 0.6)
 
-(def constant TT_DAMAGEMONITOR_INSTALLED true)
-
-(def constant DMonitor_FONT_COLORS {
-	DEFAULT     : "FONT_CLASS_TO_COLOR['$FontColorDefault']",
-	BLUE        : "FONT_CLASS_TO_COLOR['$FontColorBuoyancy']",
-    DARK_BLUE   : "FONT_CLASS_TO_COLOR['$FontColorTurquoise']",
-    GREEN       : "FONT_CLASS_TO_COLOR['$FontColorGreen']",
-    LIGHT_GREEN : "FONT_CLASS_TO_COLOR['$FontColorFreeExp']",
-    GOLD        : "FONT_CLASS_TO_COLOR['$FontColorGolden']",
-	ORANGE      : "FONT_CLASS_TO_COLOR['$FontColorOrange']",
-    RED         : "FONT_CLASS_TO_COLOR['$TextColorHUDCriticalPC']",
-
-    ALL         : ['DEFAULT', 'BLUE', 'DARK_BLUE', 'GREEN', 'LIGHT_GREEN', 'GOLD', 'ORANGE', 'RED']
-})
-
 (def constant DMonitor_SHIP_ICON_COLOR_PRESETS [
 	#Use -(234-0x??)
 	#None
@@ -92,17 +77,9 @@
 	},
 ])
 
-(def constant DMonitor_DISPLAY_MODE {
-    DISABLE:    0,
-    ENABLE:     1,
-    ADAPTIVE:   2,
-})
-
 (def element DMonitor_DamageMonitor() layout=true
 	(scope
 		(macro STAGE_SIZE)
-
-        (macro TT_GET_USERPREF)
 
         (macro IS_SPECTATOR_MODE)
 
@@ -124,8 +101,9 @@
 
         (var playerAvatar:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
         (var ownId:str = "playerAvatar ? playerAvatar.avatar.id : ''")
-        
-        (macro TT_GET_PREF_BOOL _varName="'isOnlyOwnDamageVisible'" _pref="DMonitor_PREFS.HIDE_OTHERS")
+
+        (macro TT_GET_PREF _varName="'hideOthersPref'" _key="'dMonitor.hideOthers'")
+        (var isOnlyOwnDamageVisible:bool = "null != hideOthersPref && null != hideOthersPref.value ? hideOthersPref.value : false")
         (var targetAvatarId:str = "isOnlyOwnDamageVisible && !isSpectatorTrainingMode ? ownId : targetId")
 	)
 
@@ -134,36 +112,61 @@
 		(bind height "stageHeight")
 	)
 
-    (element DMonitor_DetailedDamageElement _targetAvatarId="targetAvatarId" _userPrefsNum="_userPrefsNum")
+    (element DMonitor_DetailedDamageElement _targetAvatarId="targetAvatarId")
 )
 
-(def element DMonitor_DetailedDamageElement(_targetAvatarId:str, _userPrefsNum:gfx=null)
+(def element DMonitor_DetailedDamageElement(_targetAvatarId:str)
     (scope
-        (macro STAGE_SIZE)
+        # Python owns the position value, its resKey bucket AND the first-placement default
+        # (dMonitor.position's center/bottom anchor, which the pivot below matches), so there is no
+        # view-side default or stage math here.
+        (macro TT_DRAGGABLE_POSITION _fullKey="'dMonitor.position'")
 
-        (macro TT_GET_PREF_NUMBER _varName="'scale'" _pref="DMonitor_PREFS.UI_SCALE")
-        (macro TT_GET_PREF_NUMBER _varName="'backgroundAlpha'" _pref="DMonitor_PREFS.BACKGROUND_ALPHA")
-        (macro TT_GET_PREF_BOOL _varName="'isPositionLocked'" _pref="DMonitor_PREFS.DISABLE_DRAGDROP")
+        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'dMonitor.uiScale'")
+        (var scale:number = "null != uiScalePref && null != uiScalePref.value ? uiScalePref.value : 1")
+        (macro TT_GET_PREF _varName="'backgroundAlphaPref'" _key="'dMonitor.backgroundAlpha'")
+        (var backgroundAlpha:number = "null != backgroundAlphaPref && null != backgroundAlphaPref.value ? backgroundAlphaPref.value : 0.4")
+        (macro TT_GET_PREF _varName="'disableDragdropPref'" _key="'dMonitor.disableDragdrop'")
+        (var isPositionLocked:bool = "null != disableDragdropPref && null != disableDragdropPref.value ? disableDragdropPref.value : false")
 
         # Expand
         (event evExpandButtonClicked)
-        (macro TT_GET_PREF_NUMBER _varName="'displayMode'" _pref="DMonitor_PREFS.DISPLAY_MODE")
+        (macro TT_GET_PREF _varName="'displayModePref'" _key="'dMonitor.displayMode'")
+        (var displayMode:number = "null != displayModePref && null != displayModePref.value ? displayModePref.value : TT_CONST.DISPLAY_MODE.ENABLED")
 
         (var camera:gfx = "$datahub.getSingleComponent(CC.camera)")
 		(var altVision:bool = "camera.altVision" (event "camera.evAltVisionChanged"))
-        (var isExpanded:bool = "displayMode == DMonitor_DISPLAY_MODE.ADAPTIVE ? altVision : displayMode")
-        (bindcall externalCall 'inputMapping.onAction' "['setUserPref', {'value': toNumber(!isExpanded) + 0.00001, 'name': 'chatBoxWidth', 'subName': DMonitor_PREFS.DISPLAY_MODE.key}]" init=false watch=false (event "evExpandButtonClicked"))
-
-        # D&D
-        (var elementName:str = "'damageMonitor'")
-		(var defaultPos:dict = "{positionX: (stageWidth / 2), positionY: (stageHeight - 200)}")
-		(macro DRAGGABLE_GET_DROP_POSITION _elementName="elementName" _defaultPosition="defaultPos")
+        (var isExpanded:bool = "displayMode == TT_CONST.DISPLAY_MODE.ADAPTIVE ? altVision : displayMode")
+        # The button writes DISABLED/ENABLED, never ADAPTIVE -- an explicit click leaves the
+        # alt-vision mode rather than cycling inside it.
+        (bindcall externalCall 'direct.action' "['mod.setPref', ['dMonitor.displayMode', isExpanded ? TT_CONST.DISPLAY_MODE.DISABLED : TT_CONST.DISPLAY_MODE.ENABLED]]" init=false watch=false (event "evExpandButtonClicked"))
     )
     (style
         (position = "absolute")
-        (bind left "dragPosX")
-        (bind top "dragPosY")
+        (bind left "dragX")
+        (bind top "dragY")
+        # Set the transform origin to the bottom centre, matching the schema's center/bottom anchor --
+        # Python places the origin and bakes no size, so a disagreeing pivot lands the panel a full
+        # width/height away.
+        (pivotX = 50%)
+        (pivotY = 100%)
         (align = "middle|center")
+    )
+
+    # Drag surface -- full-size over this element, which is what Python is told about (reportGeometry
+    # describes the block TT_DRAGGABLE sits in, so a small grab handle would relocate the panel).
+    # Declared FIRST so the injected signifier stays behind the content (zindex does not cross a block
+    # boundary) and so the buttons above keep their own hit-testing.
+    (block
+        (class $FullsizeAbsolute)
+        (style
+            (backgroundColor = 0x00FFFFFF)
+            # hitTest is a STYLE property when BOUND -- directly under a (block ...) it throws at build
+            # time. Dropping it when locked is also what suppresses the drag-hint tooltip; the macro
+            # only gates the writes and the signifier.
+            (bind hitTest "!isPositionLocked")
+        )
+        (macro TT_DRAGGABLE _fullKey="'dMonitor.position'" _isDragEnabled="!isPositionLocked")
     )
 
     # Expand button
@@ -178,25 +181,17 @@
         )
     )
     # Setting
-    (element TT_ConfigButtonElement _modIndex = "13"
+    (element TT_ConfigButtonElement _modSlug = "'damage-monitor'"
         (style
             (left = -30px)
             (top = 20px)
         )
     )
-    
+
     (block
         (style
             (bind scaleX "scale")
             (bind scaleY "scale")
-        )
-
-        (controller $Instance renderer='ModDraggableElement'
-            (bind enabled "!isPositionLocked")
-            (args
-                _elementName="elementName"
-                _defaultPosition="defaultPos"
-            )
         )
 
         (mc contrast_panel
@@ -209,16 +204,16 @@
 
         (element DMonitor_DamagePanelElement
             _targetAvatarId="_targetAvatarId"
-            _userPrefsNum="_userPrefsNum"
 
             (bind visible "isExpanded")
         )
     )
 )
 
-(def element DMonitor_DamagePanelElement(_targetAvatarId:str, _userPrefsNum:gfx=null)
+(def element DMonitor_DamagePanelElement(_targetAvatarId:str)
     (scope
-        (macro TT_GET_PREF_BOOL _varName="'isClanTagVisible'" _pref="DMonitor_PREFS.PLAYER_INFO.CLAN_NAME")
+        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clanName'")
+        (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
 
         # Avatar
         (var avatarEntity:gfx = "$datahub.getPrimaryEntity(CC.avatar, _targetAvatarId)")
@@ -242,21 +237,20 @@
             (hitTest = false)
         )
 
-        (element DMonitor_HeaderTextItem _text="playerName" _userPrefsNum="_userPrefsNum")
+        (element DMonitor_HeaderTextItem _text="playerName")
 
-        (element DMonitor_ShipIconItem _shipType="shipType" _iconDir=1 _userPrefsNum="_userPrefsNum")
+        (element DMonitor_ShipIconItem _shipType="shipType" _iconDir=1)
 
-        (element DMonitor_HeaderTextItem _text="shipName" _userPrefsNum="_userPrefsNum")
+        (element DMonitor_HeaderTextItem _text="shipName")
     )
 
 
     (element DMonitor_DamageTableElement
         _targetAvatarId="_targetAvatarId"
-        _userPrefsNum="_userPrefsNum"
     )
 )
 
-(def element DMonitor_DamageTableElement(_targetAvatarId:str, _userPrefsNum:gfx=null)
+(def element DMonitor_DamageTableElement(_targetAvatarId:str)
     (scope
         # Received Damage Data Entity
 		(var rDamageEntityWatcher:gfx = "$datahub.getPrimWatcher(CC.mods_DataComponent, DMonitor_RECEIVD_DAMAGE_COMPONENT_KEY)")
@@ -282,8 +276,10 @@
 		(var teamDamageData:dict = "tDamageDataComponent ? tDamageDataComponent.data : {}" (event "tDamageDataComponent.evDataChanged"))
 
         # Prefs
-        (macro TT_GET_PREF_BOOL _varName="'isReceivedDamageVisible'" _pref="DMonitor_PREFS.RECEIVED_DAMAGE_VISIBLE")
-        (macro TT_GET_PREF_BOOL _varName="'isInflictedDamageVisible'" _pref="DMonitor_PREFS.INFLICTED_DAMAGE_VISIBLE")
+        (macro TT_GET_PREF _varName="'receivedVisiblePref'" _key="'dMonitor.receivedDamageVisible'")
+        (var isReceivedDamageVisible:bool = "null != receivedVisiblePref && null != receivedVisiblePref.value ? receivedVisiblePref.value : true")
+        (macro TT_GET_PREF _varName="'inflictedVisiblePref'" _key="'dMonitor.inflictedDamageVisible'")
+        (var isInflictedDamageVisible:bool = "null != inflictedVisiblePref && null != inflictedVisiblePref.value ? inflictedVisiblePref.value : true")
     )
 
     (style
@@ -307,7 +303,6 @@
                     _damageData="receivedDamage"
                     _teamDamageData="teamDamageData"
                     _isInflictedDamage = "false"
-                    _userPrefsNum="_userPrefsNum"
                 )
             )
         )
@@ -322,16 +317,16 @@
                     _damageData="inflictedDamage"
                     _teamDamageData="teamDamageData"
                     _isInflictedDamage = "true"
-                    _userPrefsNum="_userPrefsNum"
                 )
             )
         )
     )
 )
 
-(def element DMonitor_DamageListElement(_targetAvatarId:str, _damageData:dict, _teamDamageData:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
+(def element DMonitor_DamageListElement(_targetAvatarId:str, _damageData:dict, _teamDamageData:dict, _isInflictedDamage:bool=true)
     (scope
-        (macro TT_GET_PREF_NUMBER _varName="'rowCounts'" _pref="DMonitor_PREFS.ROW_COUNTS")
+        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'dMonitor.rowCounts'")
+        (var rowCounts:number = "null != rowCountsPref && null != rowCountsPref.value ? rowCountsPref.value : 4")
 
         (var collection:gfx = "$datahub.getCollection(CC.avatar)")
 		(var allyCollection:gfx = "collection.getChildByPath('team.ally.sortedLeftTeam')")
@@ -343,7 +338,7 @@
 
         (var titleLabel:str = "_isInflictedDamage ? 'IDS_BATTLE_STATS_CAUSED_DAMAGE' : 'IDS_TAKEN_DAMAGE_HINT'")
 
-        # Avatar 
+        # Avatar
         (var avatarEntity:gfx = "$datahub.getPrimaryEntity(CC.avatar, _targetAvatarId)")
 
         # Relation
@@ -351,7 +346,7 @@
         (var relationValue:number = "relationComponent ? relationComponent.value : 0" (event "relationComponent.evChanged"))
 		(var isAlly:bool = "relationComponent && relationValue == SC.Battle.PLAYER_RELATION.ALLY")
         (var isSelf:bool = "relationComponent && relationValue == SC.Battle.PLAYER_RELATION.SELF")
-        
+
         # CT
         (var relationName:str = "_isInflictedDamage ?
                                         isSelf  ? 'self' :
@@ -362,7 +357,8 @@
                                                             : 'ally'"
         )
 
-        (macro TT_GET_PREF_NUMBER _varName="'barAlpha'"                 _pref="DMonitor_PREFS.BAR_ALPHA")
+        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'dMonitor.barAlpha'")
+        (var barAlpha:number = "null != barAlphaPref && null != barAlphaPref.value ? barAlphaPref.value : 0.7")
         (var baseCT:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
         (var markerColorTransform:dict = "{redOffset: baseCT.redOffset, greenOffset: baseCT.greenOffset, blueOffset: baseCT.blueOffset, alphaMultiplier: barAlpha}")
     )
@@ -376,7 +372,6 @@
         _teamDamageData="_teamDamageData"
         _colorTransform="markerColorTransform"
         _isInflictedDamage="_isInflictedDamage"
-        _userPrefsNum="_userPrefsNum"
     )
 
     (element HorizontalDividerTwoPx)
@@ -391,21 +386,16 @@
                 _teamDamageData = "_teamDamageData"
                 _colorTransform = "markerColorTransform"
                 _isInflictedDamage = "_isInflictedDamage"
-                _userPrefsNum = "_userPrefsNum"
             )
         )
     )
 )
 
-(def element DMonitor_DamageHeaderElement(_damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
+(def element DMonitor_DamageHeaderElement(_damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true)
     (scope
         (event evShow)
 
-        (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
-        (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
-        (macro TT_GET_PREF_BOOL   _varName="'isShipTypeVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON")
-        (macro TT_GET_PREF_BOOL   _varName="'isShipNameVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.SHIP_NAME")
-        (macro TT_GET_PREF_BOOL   _varName="'isPlayerNameVisible'"      _pref="DMonitor_PREFS.PLAYER_INFO.PLAYER_NAME")
+        (macro DMonitor_GET_COLUMN_PREFS)
 
         (var totalWidth:number = "(DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier * isPlayerNameVisible) + (DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier * isShipNameVisible) + DMonitor_DAMAGE_WIDTH + (SHIP_ICON_SIZE.WIDTH * isShipTypeVisible)")
 
@@ -413,7 +403,7 @@
 
         (var totalDamage:number = "'totalDamage' in _damageData ? floor(_damageData.totalDamage) : 0")
         (var scaleBase:number = "'personalDamageScaleBase' in _teamDamageData ? _teamDamageData.personalDamageScaleBase : 50000")
-        (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")        
+        (var scaleDirection:number = "_isInflictedDamage ? 1 : -1")
 
         (var flowDirection:number = "_isInflictedDamage ? Flow.REVERSE_HORIZONTAL : Flow.HORIZONTAL")
 
@@ -439,7 +429,7 @@
 							(bind trigger "totalDamage")
                             (bind enabled "totalDamage < animatedDamage")
 							(event "evShow")
-                            
+
 			)
 		)
         (var barScale:number = "scaleDirection * animatedDamage / scaleBase")
@@ -464,13 +454,13 @@
         (bind colorTransform "_colorTransform")
     )
 
-    (element DMonitor_HeaderTextItem _text="tr(titleLabel)" _userPrefsNum="_userPrefsNum"
+    (element DMonitor_HeaderTextItem _text="tr(titleLabel)"
         (style
             (marginTop = 5px)
         )
     )
 
-    (element DMonitor_HeaderTextItem _text="ceil(animatedDamage)" _userPrefsNum="_userPrefsNum"
+    (element DMonitor_HeaderTextItem _text="ceil(animatedDamage)"
         (style
             (marginBottom = 5px)
         )
@@ -478,18 +468,16 @@
 
 )
 
-(def element DMonitor_DamageRowElement(_playerId:str, _damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true, _userPrefsNum:gfx=null)
+(def element DMonitor_DamageRowElement(_playerId:str, _damageData:dict, _teamDamageData:dict, _colorTransform:dict, _isInflictedDamage:bool=true)
     (scope
         (event evShow)
         #
-        (macro TT_GET_PREF_NUMBER _varName="'playerInfoWidthModifier'"  _pref="DMonitor_PREFS.PLAYER_INFO.WIDTH")
-        (macro TT_GET_PREF_NUMBER _varName="'shipInfoWidthModifier'"    _pref="DMonitor_PREFS.SHIP_INFO.WIDTH")
-        (macro TT_GET_PREF_NUMBER _varName="'rowHeightOffset'"          _pref="DMonitor_PREFS.ROW_HEIGHT")
-        
-        (macro TT_GET_PREF_BOOL   _varName="'isShipNameVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.SHIP_NAME")
-        (macro TT_GET_PREF_BOOL   _varName="'isShipTypeVisible'"        _pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON")
-        (macro TT_GET_PREF_BOOL   _varName="'isClanTagVisible'"         _pref="DMonitor_PREFS.PLAYER_INFO.CLAN_NAME")
-        (macro TT_GET_PREF_BOOL   _varName="'isPlayerNameVisible'"      _pref="DMonitor_PREFS.PLAYER_INFO.PLAYER_NAME")
+        (macro DMonitor_GET_COLUMN_PREFS)
+
+        (macro TT_GET_PREF _varName="'rowHeightPref'" _key="'dMonitor.rowHeight'")
+        (var rowHeightOffset:number = "null != rowHeightPref && null != rowHeightPref.value ? rowHeightPref.value : 5")
+        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clanName'")
+        (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
 
         (var playerInfoWidth:number = "DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier")
         (var shipInfoWidth:number = "DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier")
@@ -536,7 +524,7 @@
 							(bind trigger "damage")
                             (bind enabled "damage < animatedDamage")
 							(event "evShow")
-                            
+
 			)
 		)
         (var barScale:number = "scaleDirection * animatedDamage / scaleBase")
@@ -545,7 +533,7 @@
     (dispatch evShow on='addedToStage')
 
     (block
-        
+
         (style
             (bind flow "flowDirection")
             (bind height "DMonitor_ROW_HEIGHT + rowHeightOffset")
@@ -571,7 +559,7 @@
             (controller $Instance renderer='DMonitor_TextItem'
                 (bind enabled "isPlayerNameVisible")
                 (args
-                    _text="playerName" _width="playerInfoWidth" _textAlign="nameAlign" _userPrefsNum="_userPrefsNum"
+                    _text="playerName" _width="playerInfoWidth" _textAlign="nameAlign"
                 )
             )
         )
@@ -583,7 +571,6 @@
                 (args
                     _shipType="shipType"
                     _iconDir="scaleDirection"
-                    _userPrefsNum="_userPrefsNum"
                 )
             )
         )
@@ -593,20 +580,21 @@
             (controller $Instance renderer='DMonitor_TextItem'
                 (bind enabled "isShipNameVisible")
                 (args
-                    _text="shipName" _width="shipInfoWidth"  _textAlign="nameAlign" _userPrefsNum="_userPrefsNum"
+                    _text="shipName" _width="shipInfoWidth"  _textAlign="nameAlign"
                 )
             )
         )
 
         # Damage
-        (element DMonitor_TextItem _text="ceil(animatedDamage)" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center" _userPrefsNum="_userPrefsNum")
+        (element DMonitor_TextItem _text="ceil(animatedDamage)" _width="DMonitor_DAMAGE_WIDTH" _textAlign="center")
     )
     (element HorizontalDividerTwoPx)
 )
 
-(def element DMonitor_ShipIconItem (_shipType:str, _iconDir:number, _userPrefsNum:gfx=null)
+(def element DMonitor_ShipIconItem (_shipType:str, _iconDir:number)
     (scope
-        (macro TT_GET_PREF_NUMBER _varName="'shipTypeStylePrefIndex'"	_pref="DMonitor_PREFS.SHIP_INFO.CLASS_ICON_STYLE_INDEX")
+        (macro TT_GET_PREF _varName="'classIconStylePref'" _key="'dMonitor.shipInfo.classIconStyleIndex'")
+        (var shipTypeStylePrefIndex:number = "null != classIconStylePref && null != classIconStylePref.value ? classIconStylePref.value : 0")
 
         (var shipTypeStyleIndex:number = "shipTypeStylePrefIndex < DMonitor_SHIP_ICON_COLOR_PRESETS.length ? shipTypeStylePrefIndex : 0")
 		(var shipTypeStyle:dict = "DMonitor_SHIP_ICON_COLOR_PRESETS[shipTypeStyleIndex]")
@@ -650,10 +638,9 @@
 	(extends $FontEnableReadability)
 )
 
-(def element DMonitor_TextItem(_text:str, _isBold:bool=false, _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
+(def element DMonitor_TextItem(_text:str, _isBold:bool=false, _width:number="'auto'", _textAlign:number = "left")
 	(scope
-        (macro TT_GET_PREF_NUMBER _varName="'fontStyleIndexPref'" _pref="DMonitor_PREFS.FONT_STYLE_INDEX")
-        (macro DMonitor_GET_FONT_COLOR _varName="'fontColor'" _prefValue="fontStyleIndexPref")
+        (macro DMonitor_GET_FONT_COLOR)
         (var fontClass:str = "_isBold ? '$DMonitor_DefaultBoldText' : '$DMonitor_DefaultText' ")
 	)
 
@@ -673,10 +660,9 @@
 	)
 )
 
-(def element DMonitor_HeaderTextItem(_text:str, _width:number="'auto'", _textAlign:number = "left", _userPrefsNum:gfx=null)
+(def element DMonitor_HeaderTextItem(_text:str, _width:number="'auto'", _textAlign:number = "left")
 	(scope
-        (macro TT_GET_PREF_NUMBER _varName="'fontStyleIndexPref'" _pref="DMonitor_PREFS.FONT_STYLE_INDEX")
-        (macro DMonitor_GET_FONT_COLOR _varName="'fontColor'" _prefValue="fontStyleIndexPref")
+        (macro DMonitor_GET_FONT_COLOR)
 	)
 
 	(style
@@ -752,9 +738,27 @@
 	)
 )
 
-(def macro DMonitor_GET_FONT_COLOR (_varName:expression="'fontColor'", _prefValue:expression="0")
-    (var __fontColorIndex:number = "_prefValue < DMonitor_FONT_COLORS.ALL.length ? _prefValue : 0")
-    (var __fontColorName:str = "DMonitor_FONT_COLORS.ALL[__fontColorIndex]")
+# The font colour is one packed ARGB `color` setting now (it was a palette ORDINAL into
+# DMonitor_FONT_COLORS, and the CMS paletteIndex migration decodes stored ordinals through that same
+# palette -- so the palette constant is dead, not renamed).  textColor is an ARGB target, so `value`
+# binds straight through; never recompute a packed colour in the view (>= 2^31 overflows).
+(def macro DMonitor_GET_FONT_COLOR ()
+    (macro TT_GET_PREF _varName="'__fontStylePref'" _key="'dMonitor.fontStyle'")
+    (var fontColor:number = "null != __fontStylePref && null != __fontStylePref.value ? __fontStylePref.value : 0xFFFFFFFF")
+)
 
-    (var name="_varName" type=number value="DMonitor_FONT_COLORS[__fontColorName]")
+# The five column prefs the header row and the data rows both need, folded so a silently-wrong key has
+# one place to live instead of two.  Fixed var names (the TT_GET_LANGUAGE_INDEX pattern) -- one use per
+# scope.
+(def macro DMonitor_GET_COLUMN_PREFS ()
+    (macro TT_GET_PREF _varName="'__playerWidthPref'" _key="'dMonitor.playerInfo.width'")
+    (var playerInfoWidthModifier:number = "null != __playerWidthPref && null != __playerWidthPref.value ? __playerWidthPref.value : 1")
+    (macro TT_GET_PREF _varName="'__shipWidthPref'" _key="'dMonitor.shipInfo.width'")
+    (var shipInfoWidthModifier:number = "null != __shipWidthPref && null != __shipWidthPref.value ? __shipWidthPref.value : 1")
+    (macro TT_GET_PREF _varName="'__playerNamePref'" _key="'dMonitor.playerInfo.playerName'")
+    (var isPlayerNameVisible:bool = "null != __playerNamePref && null != __playerNamePref.value ? __playerNamePref.value : true")
+    (macro TT_GET_PREF _varName="'__shipNamePref'" _key="'dMonitor.shipInfo.shipName'")
+    (var isShipNameVisible:bool = "null != __shipNamePref && null != __shipNamePref.value ? __shipNamePref.value : true")
+    (macro TT_GET_PREF _varName="'__classIconPref'" _key="'dMonitor.shipInfo.classIcon'")
+    (var isShipTypeVisible:bool = "null != __classIconPref && null != __classIconPref.value ? __classIconPref.value : true")
 )
