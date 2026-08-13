@@ -743,8 +743,8 @@
 # palette -- so the palette constant is dead, not renamed).  textColor is an ARGB target, so `value`
 # binds straight through; never recompute a packed colour in the view (>= 2^31 overflows).
 (def macro DMonitor_GET_FONT_COLOR ()
-    (macro TT_GET_PREF _varName="'__fontStylePref'" _key="'dMonitor.fontStyle'")
-    (var fontColor:number = "null != __fontStylePref && null != __fontStylePref.value ? __fontStylePref.value : 0xFFFFFFFF")
+    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'dMonitor.fontColor'")
+    (var fontColor:number = "null != __fontColorPref && null != __fontColorPref.value ? __fontColorPref.value : 0xFFEEEEEE")
 )
 
 # The five column prefs the header row and the data rows both need, folded so a silently-wrong key has
