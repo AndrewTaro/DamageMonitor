@@ -145,11 +145,13 @@
         (position = "absolute")
         (bind left "dragX")
         (bind top "dragY")
-        # Set the transform origin to the bottom centre, matching the schema's center/bottom anchor --
-        # Python places the origin and bakes no size, so a disagreeing pivot lands the panel a full
-        # width/height away.
-        (pivotX = 50%)
-        (pivotY = 100%)
+        # NO pivot -- top-left origin, as legacy.  A stored position is an ORIGIN, so a pivot change
+        # re-reads the folded legacy damageMonitor_positionX/Y at a different corner and shifts every
+        # migrated panel by (w/2, h).
+        # The schema's center/bottom anchor does NOT need a matching pivot: Python resolves defaults
+        # size-aware and the pivot cancels (boxLeft = P - f*size, via the reported pox/poy), so the
+        # panel's centre/bottom edge lands where the anchor says either way.  Matching only avoids a
+        # one-frame offset before the first reportGeometry, for a user with no stored position.
         (align = "middle|center")
     )
 
