@@ -3,8 +3,6 @@
 (def constant DMonitor_TARGET_COMPONENT_KEY 'modDamageMonitorTargetKey')
 (def constant DMonitor_TEAM_TOTAL_DAMAGE_COMPONENT_KEY 'modDamageMonitorTeamTotalDamageKey')
 
-(def constant DMonitor_PLAYER_INFO_WIDTH 120px)
-(def constant DMonitor_SHIP_NAME_WIDTH 90px)
 (def constant DMonitor_DAMAGE_WIDTH 50px)
 (def constant DMonitor_ROW_HEIGHT 15px)
 
@@ -122,9 +120,9 @@
         # view-side default or stage math here.
         (macro TT_DRAGGABLE_POSITION _fullKey="'dMonitor.position'")
 
-        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'dMonitor.uiScale'")
+        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'dMonitor.appearance.uiScale'")
         (var scale:number = "null != uiScalePref && null != uiScalePref.value ? uiScalePref.value : 1")
-        (macro TT_GET_PREF _varName="'backgroundAlphaPref'" _key="'dMonitor.backgroundAlpha'")
+        (macro TT_GET_PREF _varName="'backgroundAlphaPref'" _key="'dMonitor.background.alpha'")
         (var backgroundAlpha:number = "null != backgroundAlphaPref && null != backgroundAlphaPref.value ? backgroundAlphaPref.value : 0.4")
         (macro TT_GET_PREF _varName="'disableDragdropPref'" _key="'dMonitor.disableDragdrop'")
         (var isPositionLocked:bool = "null != disableDragdropPref && null != disableDragdropPref.value ? disableDragdropPref.value : false")
@@ -327,7 +325,7 @@
 
 (def element DMonitor_DamageListElement(_targetAvatarId:str, _damageData:dict, _teamDamageData:dict, _isInflictedDamage:bool=true)
     (scope
-        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'dMonitor.rowCounts'")
+        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'dMonitor.appearance.rowCounts'")
         (var rowCounts:number = "null != rowCountsPref && null != rowCountsPref.value ? rowCountsPref.value : 4")
 
         (var collection:gfx = "$datahub.getCollection(CC.avatar)")
@@ -359,7 +357,7 @@
                                                             : 'ally'"
         )
 
-        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'dMonitor.barAlpha'")
+        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'dMonitor.appearance.barAlpha'")
         (var barAlpha:number = "null != barAlphaPref && null != barAlphaPref.value ? barAlphaPref.value : 0.7")
         (var baseCT:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
         (var markerColorTransform:dict = "{redOffset: baseCT.redOffset, greenOffset: baseCT.greenOffset, blueOffset: baseCT.blueOffset, alphaMultiplier: barAlpha}")
@@ -399,7 +397,7 @@
 
         (macro DMonitor_GET_COLUMN_PREFS)
 
-        (var totalWidth:number = "(DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier * isPlayerNameVisible) + (DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier * isShipNameVisible) + DMonitor_DAMAGE_WIDTH + (SHIP_ICON_SIZE.WIDTH * isShipTypeVisible)")
+        (var totalWidth:number = "(playerInfoWidth * isPlayerNameVisible) + (shipInfoWidth * isShipNameVisible) + DMonitor_DAMAGE_WIDTH + (SHIP_ICON_SIZE.WIDTH * isShipTypeVisible)")
 
         (var titleLabel:str = "_isInflictedDamage ? 'IDS_BATTLE_STATS_CAUSED_DAMAGE' : 'IDS_TAKEN_DAMAGE_HINT'")
 
@@ -476,13 +474,10 @@
         #
         (macro DMonitor_GET_COLUMN_PREFS)
 
-        (macro TT_GET_PREF _varName="'rowHeightPref'" _key="'dMonitor.rowHeight'")
+        (macro TT_GET_PREF _varName="'rowHeightPref'" _key="'dMonitor.appearance.rowHeight'")
         (var rowHeightOffset:number = "null != rowHeightPref && null != rowHeightPref.value ? rowHeightPref.value : 5")
         (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clanName'")
         (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
-
-        (var playerInfoWidth:number = "DMonitor_PLAYER_INFO_WIDTH * playerInfoWidthModifier")
-        (var shipInfoWidth:number = "DMonitor_SHIP_NAME_WIDTH * shipInfoWidthModifier")
 
         (var isDataAvailable:bool = "_playerId != ''")
 
@@ -595,7 +590,7 @@
 
 (def element DMonitor_ShipIconItem (_shipType:str, _iconDir:number)
     (scope
-        (macro TT_GET_PREF _varName="'classIconStylePref'" _key="'dMonitor.shipInfo.classIconStyleIndex'")
+        (macro TT_GET_PREF _varName="'classIconStylePref'" _key="'dMonitor.shipInfo.color'")
         (var shipTypeStylePrefIndex:number = "null != classIconStylePref && null != classIconStylePref.value ? classIconStylePref.value : 0")
 
         (var shipTypeStyleIndex:number = "shipTypeStylePrefIndex < DMonitor_SHIP_ICON_COLOR_PRESETS.length ? shipTypeStylePrefIndex : 0")
@@ -745,7 +740,7 @@
 # palette -- so the palette constant is dead, not renamed).  textColor is an ARGB target, so `value`
 # binds straight through; never recompute a packed colour in the view (>= 2^31 overflows).
 (def macro DMonitor_GET_FONT_COLOR ()
-    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'dMonitor.fontColor'")
+    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'dMonitor.appearance.fontColor'")
     (var fontColor:number = "null != __fontColorPref && null != __fontColorPref.value ? __fontColorPref.value : 0xFFEEEEEE")
 )
 
@@ -754,13 +749,13 @@
 # scope.
 (def macro DMonitor_GET_COLUMN_PREFS ()
     (macro TT_GET_PREF _varName="'__playerWidthPref'" _key="'dMonitor.playerInfo.width'")
-    (var playerInfoWidthModifier:number = "null != __playerWidthPref && null != __playerWidthPref.value ? __playerWidthPref.value : 1")
+    (var playerInfoWidth:number = "__playerWidthPref.value")
     (macro TT_GET_PREF _varName="'__shipWidthPref'" _key="'dMonitor.shipInfo.width'")
-    (var shipInfoWidthModifier:number = "null != __shipWidthPref && null != __shipWidthPref.value ? __shipWidthPref.value : 1")
+    (var shipInfoWidth:number = "__shipWidthPref.value")
     (macro TT_GET_PREF _varName="'__playerNamePref'" _key="'dMonitor.playerInfo.playerName'")
     (var isPlayerNameVisible:bool = "null != __playerNamePref && null != __playerNamePref.value ? __playerNamePref.value : true")
-    (macro TT_GET_PREF _varName="'__shipNamePref'" _key="'dMonitor.shipInfo.shipName'")
+    (macro TT_GET_PREF _varName="'__shipNamePref'" _key="'dMonitor.shipInfo.name'")
     (var isShipNameVisible:bool = "null != __shipNamePref && null != __shipNamePref.value ? __shipNamePref.value : true")
-    (macro TT_GET_PREF _varName="'__classIconPref'" _key="'dMonitor.shipInfo.classIcon'")
+    (macro TT_GET_PREF _varName="'__classIconPref'" _key="'dMonitor.shipInfo.icon'")
     (var isShipTypeVisible:bool = "null != __classIconPref && null != __classIconPref.value ? __classIconPref.value : true")
 )
