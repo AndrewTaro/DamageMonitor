@@ -120,11 +120,11 @@
         # view-side default or stage math here.
         (macro TT_DRAGGABLE_POSITION _fullKey="'dMonitor.position'")
 
-        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'dMonitor.appearance.uiScale'")
+        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'dMonitor.appearance.scale'")
         (var scale:number = "null != uiScalePref && null != uiScalePref.value ? uiScalePref.value : 1")
         (macro TT_GET_PREF _varName="'backgroundAlphaPref'" _key="'dMonitor.background.alpha'")
         (var backgroundAlpha:number = "null != backgroundAlphaPref && null != backgroundAlphaPref.value ? backgroundAlphaPref.value : 0.4")
-        (macro TT_GET_PREF _varName="'disableDragdropPref'" _key="'dMonitor.disableDragdrop'")
+        (macro TT_GET_PREF _varName="'disableDragdropPref'" _key="'dMonitor.disableDragDrop'")
         (var isPositionLocked:bool = "null != disableDragdropPref && null != disableDragdropPref.value ? disableDragdropPref.value : false")
 
         # Expand
@@ -212,7 +212,7 @@
 
 (def element DMonitor_DamagePanelElement(_targetAvatarId:str)
     (scope
-        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clanName'")
+        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clan'")
         (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
 
         # Avatar
@@ -276,9 +276,9 @@
 		(var teamDamageData:dict = "tDamageDataComponent ? tDamageDataComponent.data : {}" (event "tDamageDataComponent.evDataChanged"))
 
         # Prefs
-        (macro TT_GET_PREF _varName="'receivedVisiblePref'" _key="'dMonitor.receivedDamageVisible'")
+        (macro TT_GET_PREF _varName="'receivedVisiblePref'" _key="'dMonitor.showReceivedDamage'")
         (var isReceivedDamageVisible:bool = "null != receivedVisiblePref && null != receivedVisiblePref.value ? receivedVisiblePref.value : true")
-        (macro TT_GET_PREF _varName="'inflictedVisiblePref'" _key="'dMonitor.inflictedDamageVisible'")
+        (macro TT_GET_PREF _varName="'inflictedVisiblePref'" _key="'dMonitor.showInflictedDamage'")
         (var isInflictedDamageVisible:bool = "null != inflictedVisiblePref && null != inflictedVisiblePref.value ? inflictedVisiblePref.value : true")
     )
 
@@ -325,7 +325,7 @@
 
 (def element DMonitor_DamageListElement(_targetAvatarId:str, _damageData:dict, _teamDamageData:dict, _isInflictedDamage:bool=true)
     (scope
-        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'dMonitor.appearance.rowCounts'")
+        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'dMonitor.appearance.rowCount'")
         (var rowCounts:number = "null != rowCountsPref && null != rowCountsPref.value ? rowCountsPref.value : 4")
 
         (var collection:gfx = "$datahub.getCollection(CC.avatar)")
@@ -357,7 +357,7 @@
                                                             : 'ally'"
         )
 
-        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'dMonitor.appearance.barAlpha'")
+        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'dMonitor.appearance.bar.alpha'")
         (var barAlpha:number = "null != barAlphaPref && null != barAlphaPref.value ? barAlphaPref.value : 0.7")
         (var baseCT:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
         (var markerColorTransform:dict = "{redOffset: baseCT.redOffset, greenOffset: baseCT.greenOffset, blueOffset: baseCT.blueOffset, alphaMultiplier: barAlpha}")
@@ -476,7 +476,7 @@
 
         (macro TT_GET_PREF _varName="'rowHeightPref'" _key="'dMonitor.appearance.rowHeight'")
         (var rowHeightOffset:number = "null != rowHeightPref && null != rowHeightPref.value ? rowHeightPref.value : 5")
-        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clanName'")
+        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clan'")
         (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
 
         (var isDataAvailable:bool = "_playerId != ''")
@@ -740,7 +740,7 @@
 # palette -- so the palette constant is dead, not renamed).  textColor is an ARGB target, so `value`
 # binds straight through; never recompute a packed colour in the view (>= 2^31 overflows).
 (def macro DMonitor_GET_FONT_COLOR ()
-    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'dMonitor.appearance.fontColor'")
+    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'dMonitor.appearance.font.color'")
     (var fontColor:number = "null != __fontColorPref && null != __fontColorPref.value ? __fontColorPref.value : 0xFFEEEEEE")
 )
 
@@ -752,7 +752,7 @@
     (var playerInfoWidth:number = "__playerWidthPref.value")
     (macro TT_GET_PREF _varName="'__shipWidthPref'" _key="'dMonitor.shipInfo.width'")
     (var shipInfoWidth:number = "__shipWidthPref.value")
-    (macro TT_GET_PREF _varName="'__playerNamePref'" _key="'dMonitor.playerInfo.playerName'")
+    (macro TT_GET_PREF _varName="'__playerNamePref'" _key="'dMonitor.playerInfo.name'")
     (var isPlayerNameVisible:bool = "null != __playerNamePref && null != __playerNamePref.value ? __playerNamePref.value : true")
     (macro TT_GET_PREF _varName="'__shipNamePref'" _key="'dMonitor.shipInfo.name'")
     (var isShipNameVisible:bool = "null != __shipNamePref && null != __shipNamePref.value ? __shipNamePref.value : true")
