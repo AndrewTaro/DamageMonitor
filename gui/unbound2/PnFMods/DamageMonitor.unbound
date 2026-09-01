@@ -745,8 +745,7 @@
 )
 
 # The five column prefs the header row and the data rows both need, folded so a silently-wrong key has
-# one place to live instead of two.  Fixed var names (the TT_GET_LANGUAGE_INDEX pattern) -- one use per
-# scope.
+# one place to live instead of two.  Fixed var names, so one use per scope.
 (def macro DMonitor_GET_COLUMN_PREFS ()
     (macro TT_GET_PREF _varName="'__playerWidthPref'" _key="'dMonitor.playerInfo.width'")
     (var playerInfoWidth:number = "__playerWidthPref.value")
