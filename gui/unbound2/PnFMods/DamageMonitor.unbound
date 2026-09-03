@@ -100,7 +100,7 @@
         (var playerAvatar:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
         (var ownId:str = "playerAvatar ? playerAvatar.avatar.id : ''")
 
-        (macro TT_GET_PREF _varName="'hideOthersPref'" _key="'dMonitor.hideOthers'")
+        (macro TT_GET_PREF _varName="'hideOthersPref'" _key="'ttaro.dMonitor.hideOthers'")
         (var isOnlyOwnDamageVisible:bool = "null != hideOthersPref && null != hideOthersPref.value ? hideOthersPref.value : false")
         (var targetAvatarId:str = "isOnlyOwnDamageVisible && !isSpectatorTrainingMode ? ownId : targetId")
 	)
@@ -116,20 +116,20 @@
 (def element DMonitor_DetailedDamageElement(_targetAvatarId:str)
     (scope
         # Python owns the position value, its resKey bucket AND the first-placement default
-        # (dMonitor.position's center/bottom anchor, which the pivot below matches), so there is no
+        # (ttaro.dMonitor.position's center/bottom anchor, which the pivot below matches), so there is no
         # view-side default or stage math here.
-        (macro TT_DRAGGABLE_POSITION _fullKey="'dMonitor.position'")
+        (macro TT_DRAGGABLE_POSITION _fullKey="'ttaro.dMonitor.position'")
 
-        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'dMonitor.appearance.scale'")
+        (macro TT_GET_PREF _varName="'uiScalePref'" _key="'ttaro.dMonitor.appearance.scale'")
         (var scale:number = "null != uiScalePref && null != uiScalePref.value ? uiScalePref.value : 1")
-        (macro TT_GET_PREF _varName="'backgroundAlphaPref'" _key="'dMonitor.background.alpha'")
+        (macro TT_GET_PREF _varName="'backgroundAlphaPref'" _key="'ttaro.dMonitor.background.alpha'")
         (var backgroundAlpha:number = "null != backgroundAlphaPref && null != backgroundAlphaPref.value ? backgroundAlphaPref.value : 0.4")
-        (macro TT_GET_PREF _varName="'disableDragdropPref'" _key="'dMonitor.disableDragDrop'")
+        (macro TT_GET_PREF _varName="'disableDragdropPref'" _key="'ttaro.dMonitor.disableDragDrop'")
         (var isPositionLocked:bool = "null != disableDragdropPref && null != disableDragdropPref.value ? disableDragdropPref.value : false")
 
         # Expand
         (event evExpandButtonClicked)
-        (macro TT_GET_PREF _varName="'displayModePref'" _key="'dMonitor.displayMode'")
+        (macro TT_GET_PREF _varName="'displayModePref'" _key="'ttaro.dMonitor.displayMode'")
         (var displayMode:number = "null != displayModePref && null != displayModePref.value ? displayModePref.value : TT_CONST.DISPLAY_MODE.ENABLED")
 
         (var camera:gfx = "$datahub.getSingleComponent(CC.camera)")
@@ -137,7 +137,7 @@
         (var isExpanded:bool = "displayMode == TT_CONST.DISPLAY_MODE.ADAPTIVE ? altVision : displayMode")
         # The button writes DISABLED/ENABLED, never ADAPTIVE -- an explicit click leaves the
         # alt-vision mode rather than cycling inside it.
-        (bindcall externalCall 'direct.action' "['mod.setPref', ['dMonitor.displayMode', isExpanded ? TT_CONST.DISPLAY_MODE.DISABLED : TT_CONST.DISPLAY_MODE.ENABLED]]" init=false watch=false (event "evExpandButtonClicked"))
+        (bindcall externalCall 'direct.action' "['mod.setPref', ['ttaro.dMonitor.displayMode', isExpanded ? TT_CONST.DISPLAY_MODE.DISABLED : TT_CONST.DISPLAY_MODE.ENABLED]]" init=false watch=false (event "evExpandButtonClicked"))
     )
     (style
         (position = "absolute")
@@ -166,7 +166,7 @@
             # only gates the writes and the signifier.
             (bind hitTest "!isPositionLocked")
         )
-        (macro TT_DRAGGABLE _fullKey="'dMonitor.position'" _isDragEnabled="!isPositionLocked")
+        (macro TT_DRAGGABLE _fullKey="'ttaro.dMonitor.position'" _isDragEnabled="!isPositionLocked")
     )
 
     # Expand button
@@ -181,7 +181,7 @@
         )
     )
     # Setting
-    (element TT_ConfigButtonElement _modSlug = "'damage-monitor'"
+    (element TT_ConfigButtonElement _modSlug = "'ttaro.damage-monitor'"
         (style
             (left = -30px)
             (top = 20px)
@@ -212,7 +212,7 @@
 
 (def element DMonitor_DamagePanelElement(_targetAvatarId:str)
     (scope
-        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clan'")
+        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'ttaro.dMonitor.playerInfo.clan'")
         (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
 
         # Avatar
@@ -276,9 +276,9 @@
 		(var teamDamageData:dict = "tDamageDataComponent ? tDamageDataComponent.data : {}" (event "tDamageDataComponent.evDataChanged"))
 
         # Prefs
-        (macro TT_GET_PREF _varName="'receivedVisiblePref'" _key="'dMonitor.showReceivedDamage'")
+        (macro TT_GET_PREF _varName="'receivedVisiblePref'" _key="'ttaro.dMonitor.showReceivedDamage'")
         (var isReceivedDamageVisible:bool = "null != receivedVisiblePref && null != receivedVisiblePref.value ? receivedVisiblePref.value : true")
-        (macro TT_GET_PREF _varName="'inflictedVisiblePref'" _key="'dMonitor.showInflictedDamage'")
+        (macro TT_GET_PREF _varName="'inflictedVisiblePref'" _key="'ttaro.dMonitor.showInflictedDamage'")
         (var isInflictedDamageVisible:bool = "null != inflictedVisiblePref && null != inflictedVisiblePref.value ? inflictedVisiblePref.value : true")
     )
 
@@ -325,7 +325,7 @@
 
 (def element DMonitor_DamageListElement(_targetAvatarId:str, _damageData:dict, _teamDamageData:dict, _isInflictedDamage:bool=true)
     (scope
-        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'dMonitor.appearance.rowCount'")
+        (macro TT_GET_PREF _varName="'rowCountsPref'" _key="'ttaro.dMonitor.appearance.rowCount'")
         (var rowCounts:number = "null != rowCountsPref && null != rowCountsPref.value ? rowCountsPref.value : 4")
 
         (var collection:gfx = "$datahub.getCollection(CC.avatar)")
@@ -357,7 +357,7 @@
                                                             : 'ally'"
         )
 
-        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'dMonitor.appearance.bar.alpha'")
+        (macro TT_GET_PREF _varName="'barAlphaPref'" _key="'ttaro.dMonitor.appearance.bar.alpha'")
         (var barAlpha:number = "null != barAlphaPref && null != barAlphaPref.value ? barAlphaPref.value : 0.7")
         (var baseCT:dict = "TWO_TEAMS_COLOR_TRANSFORMS[relationName]")
         (var markerColorTransform:dict = "{redOffset: baseCT.redOffset, greenOffset: baseCT.greenOffset, blueOffset: baseCT.blueOffset, alphaMultiplier: barAlpha}")
@@ -474,9 +474,9 @@
         #
         (macro DMonitor_GET_COLUMN_PREFS)
 
-        (macro TT_GET_PREF _varName="'rowHeightPref'" _key="'dMonitor.appearance.rowHeight'")
+        (macro TT_GET_PREF _varName="'rowHeightPref'" _key="'ttaro.dMonitor.appearance.rowHeight'")
         (var rowHeightOffset:number = "null != rowHeightPref && null != rowHeightPref.value ? rowHeightPref.value : 5")
-        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'dMonitor.playerInfo.clan'")
+        (macro TT_GET_PREF _varName="'clanNamePref'" _key="'ttaro.dMonitor.playerInfo.clan'")
         (var isClanTagVisible:bool = "null != clanNamePref && null != clanNamePref.value ? clanNamePref.value : true")
 
         (var isDataAvailable:bool = "_playerId != ''")
@@ -590,7 +590,7 @@
 
 (def element DMonitor_ShipIconItem (_shipType:str, _iconDir:number)
     (scope
-        (macro TT_GET_PREF _varName="'classIconStylePref'" _key="'dMonitor.shipInfo.color'")
+        (macro TT_GET_PREF _varName="'classIconStylePref'" _key="'ttaro.dMonitor.shipInfo.color'")
         (var shipTypeStylePrefIndex:number = "null != classIconStylePref && null != classIconStylePref.value ? classIconStylePref.value : 0")
 
         (var shipTypeStyleIndex:number = "shipTypeStylePrefIndex < DMonitor_SHIP_ICON_COLOR_PRESETS.length ? shipTypeStylePrefIndex : 0")
@@ -740,21 +740,21 @@
 # palette -- so the palette constant is dead, not renamed).  textColor is an ARGB target, so `value`
 # binds straight through; never recompute a packed colour in the view (>= 2^31 overflows).
 (def macro DMonitor_GET_FONT_COLOR ()
-    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'dMonitor.appearance.font.color'")
+    (macro TT_GET_PREF _varName="'__fontColorPref'" _key="'ttaro.dMonitor.appearance.font.color'")
     (var fontColor:number = "null != __fontColorPref && null != __fontColorPref.value ? __fontColorPref.value : 0xFFEEEEEE")
 )
 
 # The five column prefs the header row and the data rows both need, folded so a silently-wrong key has
 # one place to live instead of two.  Fixed var names, so one use per scope.
 (def macro DMonitor_GET_COLUMN_PREFS ()
-    (macro TT_GET_PREF _varName="'__playerWidthPref'" _key="'dMonitor.playerInfo.width'")
+    (macro TT_GET_PREF _varName="'__playerWidthPref'" _key="'ttaro.dMonitor.playerInfo.width'")
     (var playerInfoWidth:number = "__playerWidthPref.value")
-    (macro TT_GET_PREF _varName="'__shipWidthPref'" _key="'dMonitor.shipInfo.width'")
+    (macro TT_GET_PREF _varName="'__shipWidthPref'" _key="'ttaro.dMonitor.shipInfo.width'")
     (var shipInfoWidth:number = "__shipWidthPref.value")
-    (macro TT_GET_PREF _varName="'__playerNamePref'" _key="'dMonitor.playerInfo.name'")
+    (macro TT_GET_PREF _varName="'__playerNamePref'" _key="'ttaro.dMonitor.playerInfo.name'")
     (var isPlayerNameVisible:bool = "null != __playerNamePref && null != __playerNamePref.value ? __playerNamePref.value : true")
-    (macro TT_GET_PREF _varName="'__shipNamePref'" _key="'dMonitor.shipInfo.name'")
+    (macro TT_GET_PREF _varName="'__shipNamePref'" _key="'ttaro.dMonitor.shipInfo.name'")
     (var isShipNameVisible:bool = "null != __shipNamePref && null != __shipNamePref.value ? __shipNamePref.value : true")
-    (macro TT_GET_PREF _varName="'__classIconPref'" _key="'dMonitor.shipInfo.icon'")
+    (macro TT_GET_PREF _varName="'__classIconPref'" _key="'ttaro.dMonitor.shipInfo.icon'")
     (var isShipTypeVisible:bool = "null != __classIconPref && null != __classIconPref.value ? __classIconPref.value : true")
 )
