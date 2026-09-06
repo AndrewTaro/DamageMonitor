@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 4,
+  "id": "cmtkswuwu000dv014fq7jo3ov",
+  "author": "ttaro",
+  "modName": "Damage Monitor",
+  "slug": "damage-monitor",
+  "order": 13,
+  "tree": [
+    {
+      "kind": "group",
+      "key": "cmtktamla00jpv0d4du7n6zbi",
+      "label": "IDS_TT_TITLE_GENERAL",
+      "collapse": "expanded",
+      "children": [
+        {
+          "kind": "setting",
+          "control": "dropdown",
+          "key": "dMonitor.displayMode",
+          "label": "IDS_TT_DISPLAY_MODE",
+          "hint": {
+            "text": "IDS_TT_HINT_DISPLAY_MODE"
+          },
+          "default": 1,
+          "options": [
+            {
+              "value": 0,
+              "phrase": "IDS_TURN_OFF"
+            },
+            {
+              "value": 1,
+              "phrase": "IDS_TURN_ON"
+            },
+            {
+              "value": 2,
+              "phrase": "IDS_ALT_VISION_MODE_1",
+              "icon": "CMD_ICONS"
+            }
+          ],
+          "optionStyle": "KEY"
+        },
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.showReceivedDamage",
+          "label": "IDS_TT_INCOMING_DAMAGE",
+          "default": true
+        },
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.showInflictedDamage",
+          "label": "IDS_TT_OUTGOING_DAMAGE",
+          "default": true
+        },
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.hideOthers",
+          "label": "IDS_TT_DISABLE_NONPLAYER_DAMAGES",
+          "default": false
+        },
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.disableDragDrop",
+          "label": "IDS_TT_DISABLE_DRAG_DROP",
+          "hint": {
+            "text": "IDS_TT_HINT_DISABLE_DRAG_DROP"
+          },
+          "default": false
+        },
+        {
+          "kind": "setting",
+          "control": "position",
+          "key": "dMonitor.position",
+          "label": "IDS_TT_DRAGDROP_RESET",
+          "hint": {
+            "text": "IDS_TT_HINT_DRAGDROP_RESET"
+          },
+          "defaultPosition": {
+            "x": {
+              "anchor": "center",
+              "offset": 0
+            },
+            "y": {
+              "anchor": "bottom",
+              "offset": 120
+            }
+          }
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "key": "cmtktamkn00jav0d4khu7dof0",
+      "label": "IDS_TT_APPEARANCE",
+      "children": [
+        {
+          "kind": "setting",
+          "control": "slider",
+          "key": "dMonitor.appearance.scale",
+          "label": "IDS_TT_UI_SCALE",
+          "default": 1,
+          "min": 0.5,
+          "max": 1.5,
+          "step": 0.1
+        },
+        {
+          "kind": "group",
+          "key": "cmt4us0h00018v0rwt3feb7w8",
+          "aggregate": "inline",
+          "children": [
+            {
+              "kind": "setting",
+              "control": "color",
+              "key": "dMonitor.appearance.font.color",
+              "label": "IDS_TT_COLOR",
+              "default": 4293848814,
+              "min": 0,
+              "max": 4294967295
+            }
+          ]
+        },
+        {
+          "kind": "setting",
+          "control": "slider",
+          "key": "dMonitor.appearance.rowHeight",
+          "label": "IDS_TT_ROW_HEIGHT",
+          "default": 5,
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "decimals": 0
+        },
+        {
+          "kind": "setting",
+          "control": "slider",
+          "key": "dMonitor.appearance.rowCount",
+          "label": "IDS_TT_ROW_COUNTS",
+          "default": 4,
+          "min": 1,
+          "max": 12,
+          "step": 1,
+          "decimals": 0
+        },
+        {
+          "kind": "group",
+          "key": "cmt4us0h4001cv0rwj8pzgs6c",
+          "aggregate": "inline",
+          "children": [
+            {
+              "kind": "setting",
+              "control": "slider",
+              "key": "dMonitor.appearance.bar.alpha",
+              "label": "IDS_TT_BAR_OPACITY",
+              "default": 0.7,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "key": "cmtktam3h0054v0d4cbf3xjyq",
+      "label": "IDS_TT_TITLE_PLAYER_INFO",
+      "collapse": "expanded",
+      "children": [
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.playerInfo.name",
+          "label": "IDS_TT_PLAYER_NAME",
+          "default": true
+        },
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.playerInfo.clan",
+          "label": "IDS_TT_CLAN_NAME",
+          "default": true,
+          "enabledWhen": {
+            "kind": "group",
+            "join": "all",
+            "conditions": [
+              {
+                "kind": "compare",
+                "key": "dMonitor.playerInfo.name",
+                "op": "in",
+                "values": [
+                  1
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "setting",
+          "control": "slider",
+          "key": "dMonitor.playerInfo.width",
+          "label": "IDS_TT_COLUMN_WIDTH",
+          "default": 120,
+          "min": 60,
+          "max": 180,
+          "step": 12,
+          "decimals": 0
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "key": "cmtktalxc000mv0d4ye7hse3b",
+      "label": "IDS_TT_TITLE_SHIP_INFO",
+      "collapse": "expanded",
+      "children": [
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.shipInfo.name",
+          "label": "IDS_TT_SHIP_NAME",
+          "default": true
+        },
+        {
+          "kind": "setting",
+          "control": "toggle",
+          "key": "dMonitor.shipInfo.icon",
+          "label": "IDS_TT_CLASS_ICON",
+          "default": true
+        },
+        {
+          "kind": "setting",
+          "control": "dropdown",
+          "key": "dMonitor.shipInfo.color",
+          "label": "IDS_TT_CLASS_ICON_COLOR",
+          "default": 0,
+          "options": [
+            {
+              "value": 0,
+              "phrase": "None"
+            },
+            {
+              "value": 1,
+              "phrase": "Aslain v1"
+            },
+            {
+              "value": 2,
+              "phrase": "Aslain v2"
+            },
+            {
+              "value": 3,
+              "phrase": "AutoSpy"
+            },
+            {
+              "value": 4,
+              "phrase": "Roslich"
+            },
+            {
+              "value": 5,
+              "phrase": "DeCease"
+            },
+            {
+              "value": 6,
+              "phrase": "Hakabase"
+            }
+          ]
+        },
+        {
+          "kind": "setting",
+          "control": "slider",
+          "key": "dMonitor.shipInfo.width",
+          "label": "IDS_TT_COLUMN_WIDTH",
+          "default": 90,
+          "min": 45,
+          "max": 135,
+          "step": 9,
+          "decimals": 0
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "key": "cmtktamig00hhv0d4tsugds8w",
+      "label": "IDS_TT_TITLE_BACKGROUND",
+      "collapse": "expanded",
+      "children": [
+        {
+          "kind": "setting",
+          "control": "slider",
+          "key": "dMonitor.background.alpha",
+          "label": "IDS_TT_OPACITY",
+          "default": 0.4,
+          "min": 0,
+          "max": 1,
+          "step": 0.1
+        }
+      ]
+    }
+  ]
+}

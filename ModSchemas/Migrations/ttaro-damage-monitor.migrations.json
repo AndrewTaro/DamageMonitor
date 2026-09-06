@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 4,
+  "opVocabularyVersion": 1,
+  "slug": "damage-monitor",
+  "migrations": [
+    {
+      "version": 1,
+      "description": "flat keys → dotted ancestry keys; slider step index → value; palette index → packed ARGB",
+      "ops": [
+        {
+          "op": "rename",
+          "from": "dMonitorBackgroundOpacity",
+          "to": "dMonitor.background.alpha"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorBarOpacity",
+          "to": "dMonitor.appearance.bar.alpha"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorDamageDisplayMode",
+          "to": "dMonitor.displayMode"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorDisableDragDrop",
+          "to": "dMonitor.disableDragDrop"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorFontStyleIndex",
+          "to": "dMonitor.appearance.font.color"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorHideOthers",
+          "to": "dMonitor.hideOthers"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorInflictedDamageVisible",
+          "to": "dMonitor.showInflictedDamage"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorPlayerInfoClanNameVisible",
+          "to": "dMonitor.playerInfo.clan"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorPlayerInfoPlayerNameVisible",
+          "to": "dMonitor.playerInfo.name"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorPlayerInfoWidth",
+          "to": "dMonitor.playerInfo.width"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorReceivedDamageVisible",
+          "to": "dMonitor.showReceivedDamage"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorRowCounts",
+          "to": "dMonitor.appearance.rowCount"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorRowHeight",
+          "to": "dMonitor.appearance.rowHeight"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorScale",
+          "to": "dMonitor.appearance.scale"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorShipInfoClassIconStyleIndex",
+          "to": "dMonitor.shipInfo.color"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorShipInfoClassIconVisible",
+          "to": "dMonitor.shipInfo.icon"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorShipInfoShipNameVisible",
+          "to": "dMonitor.shipInfo.name"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitorShipInfoWidth",
+          "to": "dMonitor.shipInfo.width"
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.appearance.bar.alpha",
+          "to": "dMonitor.appearance.bar.alpha",
+          "transform": "stepIndex",
+          "args": {
+            "min": 0,
+            "step": 0.1
+          }
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.appearance.rowCount",
+          "to": "dMonitor.appearance.rowCount",
+          "transform": "stepIndex",
+          "args": {
+            "min": 1,
+            "step": 1
+          }
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.appearance.scale",
+          "to": "dMonitor.appearance.scale",
+          "transform": "stepIndex",
+          "args": {
+            "min": 0.5,
+            "step": 0.1
+          }
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.background.alpha",
+          "to": "dMonitor.background.alpha",
+          "transform": "stepIndex",
+          "args": {
+            "min": 0,
+            "step": 0.1
+          }
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.playerInfo.width",
+          "to": "dMonitor.playerInfo.width",
+          "transform": "stepIndex",
+          "args": {
+            "min": 60,
+            "step": 12
+          }
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.shipInfo.width",
+          "to": "dMonitor.shipInfo.width",
+          "transform": "stepIndex",
+          "args": {
+            "min": 45,
+            "step": 9
+          }
+        },
+        {
+          "op": "transform",
+          "from": "dMonitor.appearance.font.color",
+          "to": "dMonitor.appearance.font.color",
+          "transform": "paletteIndex",
+          "args": {
+            "palette": [
+              15658734,
+              1296887,
+              52428,
+              5040298,
+              13434777,
+              16764006,
+              16750899,
+              16665898
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "legacyPositions": [
+    {
+      "key": "dMonitor.position",
+      "element": "damageMonitor"
+    }
+  ]
+}
