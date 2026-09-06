@@ -702,7 +702,7 @@
 		_soundSet = "'dropdown'"
 	)
 	(dispatch btnExpand_evMouseUp on='mouseUp' args="{isDown: false}" (bind enabled "_enabled"))
-	(dispatch evExpandButtonClicked args={} watch=false init=false dir="EventDirection.UP" (event "btnExpand_evMouseUp"))
+	(dispatch evExpandButtonClicked args={} dir="EventDirection.UP" (event "btnExpand_evMouseUp"))
 
 	(style
 		(width = 13px)
