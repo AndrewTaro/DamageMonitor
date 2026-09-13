@@ -1,0 +1,10 @@
+<mod name="DamageMonitor" version="1.0.0" priority="0">
+  <requires installer="&gt;=1.0.0"/>
+
+  <!-- Unbound 2 view; the .unbound file is auto-discovered, only the battle mount is needed. -->
+  <ubMountInBattle unbound="2"
+                   rootElementId="DMonitor_DamageMonitor"
+                   name="unbound2DamageMonitor"
+                   hitTest="true"
+                   after="MainHud"/>
+</mod>
