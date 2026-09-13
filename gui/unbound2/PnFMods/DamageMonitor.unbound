@@ -222,7 +222,8 @@
         (var ship:gfx = "avatarComponent ? avatarComponent.ship.ref.ship : null")
         (var shipName:str = "avatarComponent ? tr(ship.nameIDS) : ''")
 		(var shipType:str = "avatarComponent ? ship.subtype : ''")
-        (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png'")
+        # '' while shipType is empty: a path with a hole in it is still requested.
+        (var shipIcon:str = "shipType ? 'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png' : ''")
     )
 
     (style
@@ -597,7 +598,7 @@
 		(var shipTypeStyle:dict = "DMonitor_SHIP_ICON_COLOR_PRESETS[shipTypeStyleIndex]")
         (var shipTypeCT:dict = "_shipType in shipTypeStyle ? shipTypeStyle[_shipType] : {}")
 
-        (var shipIcon:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(_shipType) + '.png'")
+        (var shipIcon:str = "_shipType ? 'url:../battle_hud/markers/ship/icon_white_' + toLower(_shipType) + '.png' : ''")
     )
 
     (style
