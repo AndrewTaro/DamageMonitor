@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "id": "cmtkswuwu000dv014fq7jo3ov",
   "author": "ttaro",
   "modName": "Damage Monitor",
@@ -9,6 +9,7 @@
     {
       "kind": "group",
       "key": "cmtktamla00jpv0d4du7n6zbi",
+      "display": "section",
       "label": "IDS_TT_TITLE_GENERAL",
       "collapse": "expanded",
       "children": [
@@ -93,6 +94,7 @@
     {
       "kind": "group",
       "key": "cmtktamkn00jav0d4khu7dof0",
+      "display": "section",
       "label": "IDS_TT_APPEARANCE",
       "children": [
         {
@@ -108,7 +110,7 @@
         {
           "kind": "group",
           "key": "cmt4us0h00018v0rwt3feb7w8",
-          "aggregate": "inline",
+          "display": "transparent",
           "children": [
             {
               "kind": "setting",
@@ -146,7 +148,7 @@
         {
           "kind": "group",
           "key": "cmt4us0h4001cv0rwj8pzgs6c",
-          "aggregate": "inline",
+          "display": "transparent",
           "children": [
             {
               "kind": "setting",
@@ -165,6 +167,7 @@
     {
       "kind": "group",
       "key": "cmtktam3h0054v0d4cbf3xjyq",
+      "display": "section",
       "label": "IDS_TT_TITLE_PLAYER_INFO",
       "collapse": "expanded",
       "children": [
@@ -212,6 +215,7 @@
     {
       "kind": "group",
       "key": "cmtktalxc000mv0d4ye7hse3b",
+      "display": "section",
       "label": "IDS_TT_TITLE_SHIP_INFO",
       "collapse": "expanded",
       "children": [
@@ -282,6 +286,7 @@
     {
       "kind": "group",
       "key": "cmtktamig00hhv0d4tsugds8w",
+      "display": "section",
       "label": "IDS_TT_TITLE_BACKGROUND",
       "collapse": "expanded",
       "children": [
