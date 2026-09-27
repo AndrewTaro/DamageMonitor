@@ -246,11 +246,112 @@
           }
         }
       ]
+    },
+    {
+      "version": 2,
+      "description": "key moves (auto) — 19 rename(s)",
+      "ops": [
+        {
+          "op": "rename",
+          "from": "dMonitor.appearance.bar.alpha",
+          "to": "damageMonitor.appearance.bar.alpha"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.appearance.font.color",
+          "to": "damageMonitor.appearance.font.color"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.appearance.rowCount",
+          "to": "damageMonitor.appearance.rowCount"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.appearance.rowHeight",
+          "to": "damageMonitor.appearance.rowHeight"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.appearance.scale",
+          "to": "damageMonitor.appearance.scale"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.background.alpha",
+          "to": "damageMonitor.background.alpha"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.disableDragDrop",
+          "to": "damageMonitor.disableDragDrop"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.displayMode",
+          "to": "damageMonitor.displayMode"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.hideOthers",
+          "to": "damageMonitor.hideOthers"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.playerInfo.clan",
+          "to": "damageMonitor.playerInfo.clan"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.playerInfo.name",
+          "to": "damageMonitor.playerInfo.name"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.playerInfo.width",
+          "to": "damageMonitor.playerInfo.width"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.position",
+          "to": "damageMonitor.position"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.shipInfo.color",
+          "to": "damageMonitor.shipInfo.color"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.shipInfo.icon",
+          "to": "damageMonitor.shipInfo.icon"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.shipInfo.name",
+          "to": "damageMonitor.shipInfo.name"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.shipInfo.width",
+          "to": "damageMonitor.shipInfo.width"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.showInflictedDamage",
+          "to": "damageMonitor.showInflictedDamage"
+        },
+        {
+          "op": "rename",
+          "from": "dMonitor.showReceivedDamage",
+          "to": "damageMonitor.showReceivedDamage"
+        }
+      ]
     }
   ],
   "legacyPositions": [
     {
-      "key": "dMonitor.position",
+      "key": "damageMonitor.position",
       "element": "damageMonitor"
     }
   ]
