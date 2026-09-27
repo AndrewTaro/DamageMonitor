@@ -5,6 +5,7 @@
   "modName": "Damage Monitor",
   "slug": "damage-monitor",
   "order": 13,
+  "migrationVersion": 1,
   "tree": [
     {
       "kind": "group",
